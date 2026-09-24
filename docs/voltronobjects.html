@@ -13,7 +13,7 @@
 
 <title>Importing Spatial Data</title>
 
-<script src="site_libs/header-attrs-2.31/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.32/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -493,13 +493,20 @@ block with multiple layers and assays).</p>
 <p>The <strong>Metadata</strong> function calls the metadata table of
 the main assay type (see <a href="#assays">vrMainAssay</a>).</p>
 <pre class="r watch-out"><code>Metadata(visium_data)</code></pre>
-<pre><code>##                                                  id Count assay_id  Assay    Layer    Sample
-## CCTTGACCACTTTATT-1_Assay1 CCTTGACCACTTTATT-1_Assay1  2350   Assay1 Visium Section1 Anterior1
-## ATTTGTCTTGGGAGCT-1_Assay1 ATTTGTCTTGGGAGCT-1_Assay1 16200   Assay1 Visium Section1 Anterior1
-## TCACGCATTGTAGATC-1_Assay1 TCACGCATTGTAGATC-1_Assay1 29377   Assay1 Visium Section1 Anterior1
-## CCGAGCTGTGCTTGTC-1_Assay1 CCGAGCTGTGCTTGTC-1_Assay1 32380   Assay1 Visium Section1 Anterior1
-## GCATGGGTACTGACGC-1_Assay1 GCATGGGTACTGACGC-1_Assay1 25433   Assay1 Visium Section1 Anterior1
-## AGTCGGCCCAAACGAC-1_Assay1 AGTCGGCCCAAACGAC-1_Assay1 18906   Assay1 Visium Section1 Anterior1</code></pre>
+<pre><code>##                                                  id Count assay_id  Assay    Layer
+## CCTTGACCACTTTATT-1_Assay1 CCTTGACCACTTTATT-1_Assay1  2350   Assay1 Visium Section1
+## ATTTGTCTTGGGAGCT-1_Assay1 ATTTGTCTTGGGAGCT-1_Assay1 16200   Assay1 Visium Section1
+## TCACGCATTGTAGATC-1_Assay1 TCACGCATTGTAGATC-1_Assay1 29377   Assay1 Visium Section1
+## CCGAGCTGTGCTTGTC-1_Assay1 CCGAGCTGTGCTTGTC-1_Assay1 32380   Assay1 Visium Section1
+## GCATGGGTACTGACGC-1_Assay1 GCATGGGTACTGACGC-1_Assay1 25433   Assay1 Visium Section1
+## AGTCGGCCCAAACGAC-1_Assay1 AGTCGGCCCAAACGAC-1_Assay1 18906   Assay1 Visium Section1
+##                              Sample
+## CCTTGACCACTTTATT-1_Assay1 Anterior1
+## ATTTGTCTTGGGAGCT-1_Assay1 Anterior1
+## TCACGCATTGTAGATC-1_Assay1 Anterior1
+## CCGAGCTGTGCTTGTC-1_Assay1 Anterior1
+## GCATGGGTACTGACGC-1_Assay1 Anterior1
+## AGTCGGCCCAAACGAC-1_Assay1 Anterior1</code></pre>
 <p>You can also specify the assay ID or the assay type to call metadata
 of a subset of spatial points.</p>
 <pre class="r watch-out"><code>Metadata(visium_data, assay = &quot;Visium&quot;)
@@ -589,7 +596,8 @@ call coordinates (see <a href="#image">vrMainSpatial</a>)</p>
 function looks for a registered version of the main coordinate system
 and returns its coordinates (if there is any).</p>
 <pre class="r watch-out"><code>vrCoordinates(visium_data, spatial = &quot;main&quot;, reg = TRUE)</code></pre>
-<pre><code>## Warning in .local(object, ...): There are no registered spatial systems with name main!</code></pre>
+<pre><code>## Warning in .local(object, ...): There are no registered spatial systems with name
+## main!</code></pre>
 <pre><code>##                                   x        y z
 ## CCTTGACCACTTTATT-1_Assay1 463.78658 183.1497 0
 ## ATTTGTCTTGGGAGCT-1_Assay1 374.97419 275.8864 0
@@ -998,8 +1006,10 @@ vrSpatialFeaturePlot(xenium_data, features = c(&quot;ACTA2&quot;, &quot;TACSTD2&
 <pre class="r watch-out"><code>data(&quot;xenium_data&quot;)
 vrEmbeddingFeaturePlot(xenium_data, features = c(&quot;ACTA2&quot;, &quot;TACSTD2&quot;), 
                        embedding = &quot;umap&quot;, combine.features = TRUE)</code></pre>
-<pre><code>## Warning in plot_theme(plot): The `x` theme element is not defined in the element hierarchy.</code></pre>
-<pre><code>## Warning in plot_theme(plot): The `y` theme element is not defined in the element hierarchy.</code></pre>
+<pre><code>## Warning in plot_theme(plot): The `x` theme element is not defined in the element
+## hierarchy.</code></pre>
+<pre><code>## Warning in plot_theme(plot): The `y` theme element is not defined in the element
+## hierarchy.</code></pre>
 <p><img src="voltronobjects_files/figure-html/unnamed-chunk-81-1.png" alt="" width="60%" style="display: block; margin: auto;" /></p>
 <p>In order to visualize the density of two molecule per each tile, you
 can define a tiling parameter <strong>n.tile</strong> and also enter

@@ -319,9 +319,9 @@ Assays: Xenium(Main)
 Features: RNA(Main) RNA_import 
 ```
 
-Now we can visualize features both existing in the Xenium panel such as EPCAM, 
-and compare it with another tumor marker, e.g. CCNB2, that are spatially
-correlated with EPCAM in this tissue section. 
+Now we can visualize features both existing in the Xenium panel such as FASN, 
+and compare it with another tumor marker, e.g. SQLE, that are spatially
+correlated with FASN in this tissue section. 
 
 ```{r eval = FALSE, class.source="watch-out", fig.align='center'}
 if (!requireNamespace("patchwork", quietly = TRUE))
@@ -330,10 +330,10 @@ library(patchwork)
 
 vrMainFeatureType(Xen_data) <- "RNA"
 g1 <- vrSpatialFeaturePlot(Xen_data, assay = "Assay1", 
-                           features = "EPCAM", n.tile = 200)
-vrMainFeatureType(Xen_data[["Assay1"]]) <- "Import"
+                           features = "FASN", n.tile = 200)
+vrMainFeatureType(Xen_data[["Assay1"]]) <- "RNA_import"
 g2 <- vrSpatialFeaturePlot(Xen_data, assay = "Assay1", 
-                           features = "CCNB2", n.tile = 200)
+                           features = "SQLE", n.tile = 200)
 g1 | g2
 ```
 
