@@ -2,6 +2,7 @@
 
 -   Intersection and Bhattacharyya measures are deprecated where SSIM and
     Matte's MI are used only after registration.
+-   add support for czi images
 
 # VoltRon 0.3.1
 
