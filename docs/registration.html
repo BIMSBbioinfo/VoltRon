@@ -1079,17 +1079,15 @@ alignment</strong> using SimpleITK. We first use either affine or
 homography transformation and then interpolate images, points and
 segments using B-spline method.</p>
 <p>To facilitate non-rigid alignment, we require to install the
-SimpleITK package as below:</p>
-<pre class="r watch-out"><code>install.packages(&quot;path/to/SimpleITK_2.5.3.tgz&quot;, repos = NULL, type = &quot;binary&quot;)</code></pre>
-<p>or if you are not using MacOS-arm or Windows, please build SimpleITK
-from source with <a href="https://elastix.dev/">Elastix</a> module
-enabled. Please note that the building process may take a while.</p>
-<pre class="r watch-out"><code>if (!require(&quot;devtools&quot;, quietly = TRUE))
-    install.packages(&quot;devtools&quot;)
-devtools::install_github(
-  repo = &quot;SimpleITK/SimpleITKRInstaller&quot;, 
-  configure.vars=c(&quot;MAKEJ=6&quot;, 
-                   &quot;ADDITIONAL_SITK_MODULES=-DSimpleITK_USE_ELASTIX=ON&quot;))</code></pre>
+SimpleITK package using light-weight SimpleITK.foyer package as
+below:</p>
+<pre class="r watch-out"><code>install.packages(&quot;SimpleITK.foyer&quot;,
+  repos = &quot;https://simpleitk.r-universe.dev&quot;,
+  type = &quot;source&quot;)
+
+# install and load SimpleITK version 2.5.7
+library(SimpleITK.foyer)
+install_simpleitk(version = &quot;2.5.7&quot;)</code></pre>
 <p>We can then use <strong>registerSpatialData</strong> function as
 before and select “Affine + Non-Rigid” and “BSpline (SimpleITK)” options
 to conduct non-rigid alignment.</p>

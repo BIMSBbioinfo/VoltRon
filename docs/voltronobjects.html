@@ -596,8 +596,7 @@ call coordinates (see <a href="#image">vrMainSpatial</a>)</p>
 function looks for a registered version of the main coordinate system
 and returns its coordinates (if there is any).</p>
 <pre class="r watch-out"><code>vrCoordinates(visium_data, spatial = &quot;main&quot;, reg = TRUE)</code></pre>
-<pre><code>## Warning in .local(object, ...): There are no registered spatial systems with name
-## main!</code></pre>
+<pre><code>## Warning in .local(object, ...): There are no registered spatial systems with name main!</code></pre>
 <pre><code>##                                   x        y z
 ## CCTTGACCACTTTATT-1_Assay1 463.78658 183.1497 0
 ## ATTTGTCTTGGGAGCT-1_Assay1 374.97419 275.8864 0
@@ -1006,10 +1005,8 @@ vrSpatialFeaturePlot(xenium_data, features = c(&quot;ACTA2&quot;, &quot;TACSTD2&
 <pre class="r watch-out"><code>data(&quot;xenium_data&quot;)
 vrEmbeddingFeaturePlot(xenium_data, features = c(&quot;ACTA2&quot;, &quot;TACSTD2&quot;), 
                        embedding = &quot;umap&quot;, combine.features = TRUE)</code></pre>
-<pre><code>## Warning in plot_theme(plot): The `x` theme element is not defined in the element
-## hierarchy.</code></pre>
-<pre><code>## Warning in plot_theme(plot): The `y` theme element is not defined in the element
-## hierarchy.</code></pre>
+<pre><code>## Warning in plot_theme(plot): The `x` theme element is not defined in the element hierarchy.</code></pre>
+<pre><code>## Warning in plot_theme(plot): The `y` theme element is not defined in the element hierarchy.</code></pre>
 <p><img src="voltronobjects_files/figure-html/unnamed-chunk-81-1.png" alt="" width="60%" style="display: block; margin: auto;" /></p>
 <p>In order to visualize the density of two molecule per each tile, you
 can define a tiling parameter <strong>n.tile</strong> and also enter
