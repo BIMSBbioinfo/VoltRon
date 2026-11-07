@@ -13,7 +13,7 @@
 
 <title>Cell/Spot Analysis</title>
 
-<script src="site_libs/header-attrs-2.31/header-attrs.js"></script>
+<script src="site_libs/header-attrs-2.32/header-attrs.js"></script>
 <script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="site_libs/bootstrap-3.3.5/css/flatly.min.css" rel="stylesheet" />
@@ -735,18 +735,18 @@ XeniumR2:
 Assays: Xenium(Main) 
 Features: RNA(Main) RNA_import </code></pre>
 <p>Now we can visualize features both existing in the Xenium panel such
-as EPCAM, and compare it with another tumor marker, e.g. CCNB2, that are
-spatially correlated with EPCAM in this tissue section.</p>
+as FASN, and compare it with another tumor marker, e.g. SQLE, that are
+spatially correlated with FASN in this tissue section.</p>
 <pre class="r watch-out"><code>if (!requireNamespace(&quot;patchwork&quot;, quietly = TRUE))
   install.packages(&quot;patchwork&quot;)
 library(patchwork)
 
 vrMainFeatureType(Xen_data) &lt;- &quot;RNA&quot;
 g1 &lt;- vrSpatialFeaturePlot(Xen_data, assay = &quot;Assay1&quot;, 
-                           features = &quot;EPCAM&quot;, n.tile = 200)
-vrMainFeatureType(Xen_data[[&quot;Assay1&quot;]]) &lt;- &quot;Import&quot;
+                           features = &quot;FASN&quot;, n.tile = 200)
+vrMainFeatureType(Xen_data[[&quot;Assay1&quot;]]) &lt;- &quot;RNA_import&quot;
 g2 &lt;- vrSpatialFeaturePlot(Xen_data, assay = &quot;Assay1&quot;, 
-                           features = &quot;CCNB2&quot;, n.tile = 200)
+                           features = &quot;SQLE&quot;, n.tile = 200)
 g1 | g2</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/cellspot_transfer_features.png" class="center">
 <br></p>

@@ -21,8 +21,7 @@ Rcpp::List accuracy_rawvector(Rcpp::RawVector& ref_image,
                               const int width, 
                               const int height,
                               std::string type,
-                              bool overlay_images = true,
-                              const bool compute_ssim_map = true) {
+                              bool overlay_images = true) {
   // results
   Rcpp::List out(3);
   
@@ -39,18 +38,15 @@ Rcpp::List accuracy_rawvector(Rcpp::RawVector& ref_image,
   
   // get metrics
   std::map<std::string, double> accuracy;
-  accuracy = getAlignmentMetrics(im1Proc, im2Proc, maskReg, type);
+  Mat1d ssim_map;
+  accuracy = getAlignmentMetrics(im1Proc, im2Proc, maskReg, 
+                                 type, ssim_map);
+  
+  // get accuracy metrics
   out[0] = accuracy;
   
-  // get matte map
-  Mat1d accuracyMatte;
-  if(compute_ssim_map){
-    // accuracyMatte = MatteMIMap(im2Proc, im1Proc, maskReg, 50);
-    accuracyMatte = getTiledAlignmentMetrics(im2Proc, im1Proc, maskReg);
-    out[1] = matToNumericMatrix(accuracyMatte); // SSIM metric 
-  } else {
-    out[1] = R_NilValue;
-  }
+  // get SSIM map
+  out[1] = matToNumericMatrix(ssim_map);
   
   // image overlay
   if(overlay_images){
