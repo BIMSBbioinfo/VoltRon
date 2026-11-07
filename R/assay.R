@@ -743,7 +743,8 @@ flipCoordinatesvrAssay <- function(
     name_segments <- names(segments)
     segments <- do.call("rbind", segments)
     segments[, "y"] <- height - segments[, "y"]
-    segments <- split(segments, segments[, 1])
+    segments <- split(segments, 
+                      factor(segments[,1], levels = unique(segments[,1])))
     names(segments) <- name_segments
     vrSegments(object, spatial = image_name, ...) <- segments
   }

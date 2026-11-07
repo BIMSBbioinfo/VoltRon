@@ -72,7 +72,8 @@ fixVoltRon <- function(object) {
   ".afi",         # Aperio AFI
   ".ndpi",        # Hamamatsu NDPI
   ".ndpis",       # Hamamatsu NDPI variants
-  ".qptiff"       # CODEX ?
+  ".qptiff",      # CODEX ?
+  ".czi"          # Zeiss CZI
 )
 
 ####

@@ -3336,11 +3336,12 @@ importImage <- function(
 #'
 #' @param object an object of sf class with each element having a geometry
 #' @param type spatial entity type: ROI or cell
+#' @param nm the names of the segments, if not provided, \code{type} will be used.
 #'
 #' @importFrom dplyr tibble
 #'
 #' @export
-generateSegments <- function(object, type = c("ROI", "cell")) {
+generateSegments <- function(object, type = c("ROI", "cell"), nm = NULL) {
   type <- match.arg(type)
   
   if(!requireNamespace("sf", quietly = TRUE))
@@ -3357,13 +3358,16 @@ generateSegments <- function(object, type = c("ROI", "cell")) {
   geometry_types <- unique(sf::st_geometry_type(geom))
   if(length(geometry_types) > 1 || !("POLYGON" %in% geometry_types))
     stop("Only POLYGON geometries can be imported as segments!")
-    
+  
+  # get names
+  nm <- if(is.null(nm)) paste0(type,1:nrow(object)) else nm
+  
   segments <- mapply(function(x,y){
     tmp <- sf::st_coordinates(x)[,c("X","Y")]
     colnames(tmp) <- c("x", "y")
     data.frame(id = y, tmp)
-  }, geom, paste0(type,1:nrow(object)), SIMPLIFY = FALSE)
-  names(segments) <- paste0(type, seq_along(segments))
+  }, geom, nm, SIMPLIFY = FALSE)
+  names(segments) <- nm
   
   # return
   return(segments)
@@ -3429,17 +3433,20 @@ generateGeoJSON <- function(segments, file) {
   }
   
   # get metadata
-  omexml <- RBioFormats::read.omexml(img)
   meta <- RBioFormats::read.metadata(img)
   
   # find channel size given series and resolution
-  meta_list <- slot(meta, name = ".Data")
-  for (i in seq_len(length(meta_list))) {
-    cur_meta <- meta_list[[i]]$coreMetadata
-    if (cur_meta$series == series && cur_meta$resolutionLevel == resolution) {
-      sizeC <- cur_meta$sizeC
-      break
-    }
+  if(inherits(meta, "ImageMetadataList")){
+    meta_list <- slot(meta, name = ".Data")
+    for (i in seq_len(length(meta_list))) {
+      cur_meta <- meta_list[[i]]$coreMetadata
+      if (cur_meta$series == series && cur_meta$resolutionLevel == resolution) {
+        sizeC <- cur_meta$sizeC
+        break
+      }
+    } 
+  } else {
+    sizeC <- meta$coreMetadata$sizeC
   }
   
   # check channels
