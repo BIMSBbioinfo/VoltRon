@@ -1441,7 +1441,7 @@ merge_data <- function(data1, data2, by = "feature.ID") {
 
     # merge
     if (is(data1_new, "DelayedArray")) {
-      data1 <- DelayedArray::cbind(data1_new, data2_new)
+      data1 <- DelayedArray::abind(data1_new, data2_new, along = 2)
     } else {
       data1 <- cbind(data1_new, data2_new)
     }
