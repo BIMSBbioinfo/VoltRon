@@ -5,20 +5,44 @@ test_that("non-spatial plots", {
   data("xenium_data")
   
   # get custom colors
-  # colors <- scales::hue_pal()(length(unique(xenium_data$clusters)))
   colors <- hue_pal(length(unique(xenium_data$clusters)))
+  colors[1] <- "black"
   names(colors) <- unique(xenium_data$clusters)
   
-  # embedding plot
-  vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", label = T)
-  vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", group.ids = c(1,3,4), label = T)
-  vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", colors = colors, label = T)
-  vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", group.ids = c(1,3,4), colors = colors[c(1,3,4)], label = T)
+  # embedding plots visualize values correctly
+  g1 <- vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", label = T)
+  expect_equal(
+    as.numeric(as.character(g1$layers[[1]]$data$clusters)), 
+    as.numeric(xenium_data$clusters))
+  
+  # embedding plots visualize subsetted values correctly
+  g1 <- vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", group.ids = c(1,3,4), label = T)
+  clusters <- xenium_data$clusters
+  clusters <- clusters[clusters %in% c(1,3,4)]
+  expect_equal(
+    as.numeric(as.character(g1$layers[[1]]$data$clusters)), 
+    as.numeric(clusters))
+  
+  # embedding plots visualize custom colors correctly
+  g1 <- vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", colors = colors, label = T)
+  expect_equal(unique(layer_data(g1)$colour), setNames(colors, NULL))
+  
+  # embedding plots visualize custom subsetted colors correctly
+  g1 <- vrEmbeddingPlot(xenium_data, group.by = "clusters", embedding = "umap", group.ids = c(1,3,4), colors = colors[c(1,3,4)], label = T)
+  expect_equal(unique(layer_data(g1)$colour), setNames(colors[c(1,3,4)], NULL))
+  
   vrEmbeddingPlot(xenium_data, group.by = "clusters", ncol = 3, split.by = "clusters")
   vrEmbeddingPlot(xenium_data, group.by = "clusters", ncol = 3, split.by = "Sample")
   expect_error(vrEmbeddingPlot(xenium_data, group.by = "clusters", ncol = 3, split.by = "art"))
   
-  # embedding feature plot
+  # embedding plots visualize values correctly
+  g1 <- vrEmbeddingFeaturePlot(xenium_data, features = c("ACTA2"), embedding = "umap", norm = FALSE)
+  tmp <- g1$layers[[1]]$data
+  tmp <- setNames(tmp$score, rownames(tmp))
+  datax <- vrData(xenium_data, features = "ACTA2")[1,]
+  expect_equal(tmp, datax[names(tmp)])
+  
+  # combined embedding feature plot
   vrEmbeddingFeaturePlot(xenium_data, features = c("ACTA2", "TACSTD2"), embedding = "umap", combine.features = TRUE)
   
   # scatterplot
@@ -35,7 +59,6 @@ test_that("spatial plots", {
   data("xenium_data")
 
   # get custom colors
-  # colors <- scales::hue_pal()(length(unique(xenium_data$clusters)))
   colors <- hue_pal(length(unique(xenium_data$clusters)))
   names(colors) <- unique(xenium_data$clusters)
 
