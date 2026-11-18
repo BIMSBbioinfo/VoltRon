@@ -3158,12 +3158,12 @@ vrEmbeddingFeaturePlot <- function(
       }
     } else {
       cur_metadata <- subset_metadata(metadata, features = feat, drop = TRUE)
-      if ("id" %in% colnames(metadata)) {
-        ind <- match(rownames(datax), metadata$id)
+      ind <- if ("id" %in% colnames(metadata)) {
+        metadata$id
       } else {
-        ind <- rownames(metadata)
+        rownames(metadata)
       }
-      # datax$score <- cur_metadata[ind,1]
+      ind <- match(rownames(datax), ind)
       datax$score <- cur_metadata[ind]
     }
 
