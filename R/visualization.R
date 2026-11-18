@@ -3158,14 +3158,12 @@ vrEmbeddingFeaturePlot <- function(
       }
     } else {
       cur_metadata <- subset_metadata(metadata, features = feat, drop = TRUE)
-      if ("id" %in% colnames(metadata)) {
-        names(cur_metadata) <- as.vector(metadata$id)
-        ind <- match(rownames(datax), names(cur_metadata))
+      ind <- if ("id" %in% colnames(metadata)) {
+        metadata$id
       } else {
-        names(cur_metadata) <- rownames(metadata)
-        ind <- rownames(metadata)
+        rownames(metadata)
       }
-      datax$score <- cur_metadata[ind]
+      datax$score <- cur_metadata[match(rownames(datax), ind)]
     }
 
     # get image information and plotting features

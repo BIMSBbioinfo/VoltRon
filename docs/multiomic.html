@@ -283,6 +283,12 @@ div.tocify {
   border-radius: 0px;
 }
 
+.tocify-subheader {
+  display: inline;
+}
+.tocify-subheader .tocify-item {
+  font-size: 0.95em;
+}
 
 </style>
 
@@ -475,8 +481,9 @@ several scenarios to align spatial assays within tissue blocks. However
 in this tutorial, we demonstrate analysis starting with data alignment
 and further downstream data integration.</p>
 <p><br></p>
-<div id="xenium-covid-19-lung-data" class="section level2">
-<h2>Xenium COVID-19 Lung Data</h2>
+</div>
+<div id="xenium-covid-19-lung-data" class="section level1">
+<h1>Xenium COVID-19 Lung Data</h1>
 <p>Xenium in situ platform is compatible with H&amp;E and
 immunofluorescence imaging , thus researchers can stain whole slides
 post-Xenium to capture additional information on the morphology of the
@@ -506,8 +513,8 @@ href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Xenium_SAR
 For more information on the TMA blocks, please visit <a
 href="https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE190732">GSE190732</a>.</p>
 <p><br></p>
-<div id="single-cells-and-molecules" class="section level3">
-<h3>Single Cells and Molecules</h3>
+<div id="single-cells-and-molecules" class="section level2">
+<h2>Single Cells and Molecules</h2>
 <p>Across these eight TMA section, we investigate a section of acute
 case which is originated from a lung with extreme number of detected
 open reading frames of virus molecules. For convenience, we load a
@@ -555,8 +562,8 @@ annotations with Xenium datasets to further understand the spatial
 localization of virus ORF types over the tissue.</p>
 <p><br></p>
 </div>
-<div id="hot-spot-analysis" class="section level3">
-<h3>Hot Spot Analysis</h3>
+<div id="hot-spot-analysis" class="section level2">
+<h2>Hot Spot Analysis</h2>
 <p>VoltRon platform allows users to find hot spots (Regions of increased
 feature of interest) of several types of spatial entities, for spots,
 cells, and even molecules. Please see <a
@@ -633,8 +640,8 @@ vrSpatialPlot(vr2_merged_acute1, assay = &quot;Xenium&quot;, group.by = &quot;Ce
                   group.ids = &quot;hot&quot;, colors = list(&quot;hot&quot; = &quot;green&quot;))</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus_hotspot_vs_cells.png" class="center"></p>
 </div>
-<div id="automated-he-registration" class="section level3">
-<h3>Automated H&amp;E Registration</h3>
+<div id="automated-he-registration" class="section level2">
+<h2>Automated H&amp;E Registration</h2>
 <p>VoltRon can analyze and also integrate information from distinct
 spatial data types such as images, annotations (as regions of interests,
 i.e. ROIs) and molecules independently. Using such advanced utilities,
@@ -741,8 +748,8 @@ acute case 1:
 Assays: ROIAnnotation(Main) Xenium_mol Xenium </code></pre>
 <p><br></p>
 </div>
-<div id="interactive-visualization" class="section level3">
-<h3>Interactive Visualization</h3>
+<div id="interactive-visualization" class="section level2">
+<h2>Interactive Visualization</h2>
 <p>Once the H&amp;E image is registered and transfered to the Xenium
 data, we can convert the VoltRon object into an Anndata object (h5ad
 file) and use <a href="https://tissuumaps.github.io/">TissUUmaps</a>
@@ -757,8 +764,8 @@ application.</p>
 <p><img width="90%" height="90%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_interactivevisualization.png" class="center"></p>
 <p><br></p>
 </div>
-<div id="label-transfer" class="section level3">
-<h3>Label Transfer</h3>
+<div id="label-transfer" class="section level2">
+<h2>Label Transfer</h2>
 <p>Now we can transfer ROI annotations as additional metadata features
 of the molecule assay. We will refer the new metadata column as “Region”
 which will indicate if the molecule is within any annotated ROI in the
@@ -815,8 +822,8 @@ s2_summary_hyaline</code></pre>
 [1,] 50977     33532 1.520249</code></pre>
 <p><br></p>
 </div>
-<div id="manual-annotation" class="section level3">
-<h3>Manual annotation</h3>
+<div id="manual-annotation" class="section level2">
+<h2>Manual annotation</h2>
 <p>To compare the proportion of <strong>S2_N</strong> and
 <strong>S2_orf1ab</strong> molecules in hyaline membranes with tissue
 sites of possible infection. We focus on another tissue niche where a
@@ -842,8 +849,8 @@ metadata column called “Infected”.</p>
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_annotation_infected.png" class="center"></p>
 <p><br></p>
 </div>
-<div id="visualize-annotations" class="section level3">
-<h3>Visualize annotations</h3>
+<div id="visualize-annotations" class="section level2">
+<h2>Visualize annotations</h2>
 <p>Before visualizing the annotations and molecule localizations in the
 same time, let’s make some changes to the metadata. We basically want to
 change the annotation of all ROIs originated from the GeoJson file to
@@ -867,8 +874,8 @@ with both the Hyaline Membrane and the infected region annotations.</p>
                   colors = list(`Hyaline Membrane` = &quot;blue&quot;, `Infected` = &quot;yellow&quot;))</code></pre>
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/molecule_visualize_virus_overlay.png" class="center"></p>
 </div>
-<div id="comparison-of-annotations" class="section level3">
-<h3>Comparison of annotations</h3>
+<div id="analyze-and-test-annotations" class="section level2">
+<h2>Analyze and test annotations</h2>
 <p>By using the newly annotated infection-associated virus molecules, we
 can do a comparison of infected regions versus the hyaline
 membranes.</p>
@@ -897,25 +904,57 @@ S2_table</code></pre>
 Region     N     orf1ab
   Hyaline  50977 33532 
   Infected 6376  2372</code></pre>
-<p>A quick test of independence on this contingency table show a
-significant difference of ratios across Hyaline and Infected
-regions.</p>
-<pre class="r watch-out"><code>fisher.test(S2_table, alternative = &quot;two.sided&quot;)</code></pre>
-<pre><code>
-    Fisher&#39;s Exact Test for Count Data
+<p>We can also do quick test for showing a significant difference of
+ratios across Hyaline and Infected regions. We combine the molecule
+metadata with the spatial coordinates, and keep the viral RNA molecules
+in the two regions.</p>
+<pre class="r watch-out"><code>mol_metadata &lt;- Metadata(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;)
+mol_coords   &lt;- vrCoordinates(vr2_merged_acute1, assay = &quot;Xenium_mol&quot;)
 
-data:  S2_table
-p-value &lt; 2.2e-16
-alternative hypothesis: true odds ratio is not equal to 1
-95 percent confidence interval:
- 0.5382305 0.5941683
-sample estimates:
-odds ratio 
- 0.5655696 </code></pre>
+mol_metadata &lt;- as_tibble(mol_metadata) |&gt;
+  bind_cols(as_tibble(mol_coords)) |&gt;
+  mutate(Region = case_when(
+    Infected == &quot;Infected&quot;  ~ &quot;Infected&quot;,   # checked first
+    Region != &quot;undefined&quot; ~ &quot;HM&quot;          # all other annotated molecules
+  )) |&gt;
+  filter(!is.na(Region), gene %in% c(&quot;S2_N&quot;, &quot;S2_orf1ab&quot;)) |&gt;
+  select(Region, gene, x, y) |&gt;
+  mutate(Region = factor(Region, levels = c(&quot;HM&quot;, &quot;Infected&quot;)))</code></pre>
+<p>Next, we count <strong>S2_N</strong> and <strong>S2_orf1ab</strong>
+molecules in 20 × 20 bins.</p>
+<pre class="r watch-out"><code>library(glmmTMB)
+
+bin_size &lt;- 20
+mol_metadata_binned &lt;- mol_metadata |&gt;
+  mutate(bx = floor(x / bin_size), by = floor(y / bin_size)) |&gt;
+  group_by(bx, by, Region) |&gt;
+  summarise(n_N   = sum(gene == &quot;S2_N&quot;),
+            n_orf = sum(gene == &quot;S2_orf1ab&quot;),
+            .groups = &quot;drop&quot;) |&gt;
+  mutate(pos = numFactor(bx, by), 
+         group = factor(1))</code></pre>
+<p>Finally, we model the number of <strong>S2_N</strong> versus
+<strong>S2_orf1ab</strong> molecules per bin, with region as a fixed
+effect and a spatial random effect whose correlation between bins decays
+exponentially with distance.</p>
+<pre class="r watch-out"><code>library(emmeans)
+
+m1 &lt;- glmmTMB(cbind(n_N, n_orf) ~ Region + exp(pos + 0 | group),
+              family = binomial, data = bins)
+
+emmeans(m1, ~ Region) |&gt;
+  contrast(&quot;revpairwise&quot;) |&gt;
+  summary(type = &quot;response&quot;, infer = TRUE)</code></pre>
+<pre><code> contrast      odds.ratio    SE  df asymp.LCL asymp.UCL null z.ratio p.value
+ Infected / HM       1.68 0.111 Inf      1.48      1.92    1   7.895 &lt;0.0001
+
+Confidence level used: 0.95 
+Intervals are back-transformed from the log odds ratio scale 
+Tests are performed on the log odds ratio scale </code></pre>
 </div>
 </div>
-<div id="xenium-breast-cancer-data" class="section level2">
-<h2>Xenium Breast Cancer Data</h2>
+<div id="xenium-breast-cancer-data" class="section level1">
+<h1>Xenium Breast Cancer Data</h1>
 <p>VoltRon allows analyzing biological images, such as H&amp;E stainings
 of tissue sections, independant to omics assays on either the same or
 adjacent tissue section. VoltRon defines image tiles, which are
@@ -935,8 +974,8 @@ href="https://www.10xgenomics.com/products/xenium-in-situ/preview-dataset-human-
 Genomics website</a> (specifically, import <strong>In Situ Replicate
 1</strong> and <strong>Supplemental: Post-Xenium H&amp;E image
 (TIFF)</strong>).</p>
-<div id="import-xenium-data" class="section level3">
-<h3>Import Xenium Data</h3>
+<div id="import-xenium-data" class="section level2">
+<h2>Import Xenium Data</h2>
 <p>We import both Xenium and post-Xenium H&amp;E images into two
 separate VoltRon objects and overlay H&amp;E images.</p>
 <pre class="r watch-out"><code># dependencies
@@ -960,8 +999,8 @@ Xen_R1</code></pre>
 Xen_R1_image                                </code></pre>
 <p><br></p>
 </div>
-<div id="clustering" class="section level3">
-<h3>Clustering</h3>
+<div id="clustering" class="section level2">
+<h2>Clustering</h2>
 <p>Using VoltRon we can also integrate tile-level spatial entities and
 image tiles with existing image foundation models such as <a
 href="https://github.com/beneroth13/dinov2">DinoV2</a> or <a
@@ -983,8 +1022,8 @@ Xen_R1_image &lt;- getClusters(Xen_R1_image, method = &quot;kmeans&quot;, label 
 <p><img width="70%" height="70%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/pixel_dinov2_spatial.png" class="center"></p>
 <p><br></p>
 </div>
-<div id="automated-he-registration-1" class="section level3">
-<h3>Automated H&amp;E Registration</h3>
+<div id="automated-he-registration-1" class="section level2">
+<h2>Automated H&amp;E Registration</h2>
 <p>In order to transfer the cluster labels of the tiles that partition
 regions, we need to first syncronize the spatial coordinate systems of
 the H&amp;E image and the Xenium cells. Here we use the H&amp;E image as
@@ -1007,8 +1046,8 @@ Xen_R1_merged &lt;- addAssay(Xen_R1_merged,
                           assay_name = &quot;Xenium&quot;,
                           sample = &quot;XeniumR1&quot;)</code></pre>
 </div>
-<div id="label-transfer-1" class="section level3">
-<h3>Label Transfer</h3>
+<div id="label-transfer-1" class="section level2">
+<h2>Label Transfer</h2>
 <p>We can view the combined dataset with the H&amp;E tile data and
 Xenium assay that are in the same tissue section.</p>
 <pre class="r watch-out"><code>SampleMetadata(Xen_R1_merged)</code></pre>
@@ -1053,8 +1092,8 @@ vrSpatialPlot(Xen_R1_merged, group.by = &quot;Cluster_kmeans&quot;, spatial = &q
 </table>
 <p><br></p>
 </div>
-<div id="marker-analysis" class="section level3">
-<h3>Marker Analysis</h3>
+<div id="marker-analysis" class="section level2">
+<h2>Marker Analysis</h2>
 <p>Now that we have labelled cells whose partitioning is determined by
 the morphological (image foundation model) features, we can perform
 marker analysis to determine signatures associated with groups. We
@@ -1124,14 +1163,14 @@ vrSpatialPlot(Xen_R1_image_subset, assay = &quot;Xenium&quot;, group.by = &quot;
 <p><br></p>
 </div>
 </div>
-<div id="xenium-if-tonsil-data" class="section level2">
-<h2>Xenium + IF Tonsil Data</h2>
+<div id="xenium-if-tonsil-data" class="section level1">
+<h1>Xenium + IF Tonsil Data</h1>
 <p>Automated alignment workflow of VoltRon can also be used to integrate
 modalities generated from the same tissue section. In this use case, we
 will perform multiplex immunofluorescence (IF) imaging after a Xenium
 experiment and integrate Protein and RNA modalities for clustering.</p>
-<div id="import-xenium-data-1" class="section level3">
-<h3>Import Xenium Data</h3>
+<div id="import-xenium-data-1" class="section level2">
+<h2>Import Xenium Data</h2>
 <p>We will generate Xenium and IF dataset from a human tonsil tissue
 section. We first import the Xenium data, and interactively subset the
 tonsil sample from the tissue microarray.</p>
@@ -1163,8 +1202,8 @@ vrImages(xen_tonsil)</code></pre>
 <p><img width="60%" height="60%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_XeniumIF_xen.png" class="center"></p>
 <p><br></p>
 </div>
-<div id="import-if-images" class="section level3">
-<h3>Import IF Images</h3>
+<div id="import-if-images" class="section level2">
+<h2>Import IF Images</h2>
 <p>Xenium in situ platform allows same section multiplex imaging post
 experiment. Depending on the protocol, the intensity measures of each
 channel can be stored in an ome.tiff file. We use the
@@ -1182,8 +1221,8 @@ href="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Multiomics/Human_Tons
                              is.RGB = FALSE)</code></pre>
 <p><br></p>
 </div>
-<div id="automated-alignment" class="section level3">
-<h3>Automated Alignment</h3>
+<div id="automated-alignment" class="section level2">
+<h2>Automated Alignment</h2>
 <p>Now, we perform automated alignment across Xenium and IF
 datasets.</p>
 <pre class="r watch-out"><code>xen_tonsil &lt;- modulateImage(xen_tonsil, brightness = 500)
@@ -1204,8 +1243,8 @@ vrImages(xen_tonsil[[&quot;Assay1&quot;]], spatial = &quot;main_reg&quot;, chann
   vrImages(if_tonsil, channel = &quot;CD21&quot;)</code></pre>
 <p><br></p>
 </div>
-<div id="quantify-intensity-of-cells" class="section level3">
-<h3>Quantify Intensity of Cells</h3>
+<div id="quantify-intensity-of-cells" class="section level2">
+<h2>Quantify Intensity of Cells</h2>
 <p>With VoltRon, we can export the registered segments, and save it as a
 GeoJson file for further processing with QuPath, which we will use it to
 quantify the mean intensity measures of CD20 and CD21 protein per Xenium
@@ -1262,8 +1301,8 @@ Assays: Xenium(Main)
 Features: RNA(Main) Protein </code></pre>
 <p><br></p>
 </div>
-<div id="processing-modalities" class="section level3">
-<h3>Processing Modalities</h3>
+<div id="processing-modalities" class="section level2">
+<h2>Processing Modalities</h2>
 <p>We first do a simple filtering on the Xenium cells, remove all cells
 whose total mRNA counts are lower than 30, and we normalize these counts
 afterwards.</p>
@@ -1297,8 +1336,8 @@ g1 / g2</code></pre>
 <p><img width="100%" height="100%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_XeniumIF_spatial.png" class="center"></p>
 <p><br></p>
 </div>
-<div id="ondisk-optional" class="section level3">
-<h3>OnDisk (Optional)</h3>
+<div id="ondisk-optional" class="section level2">
+<h2>OnDisk (Optional)</h2>
 <p>VoltRon provides additional utilities to save object on disk to lower
 memory usage of data analysis and clustering. We can save the object on
 disk and continue analysis which will potentially increase the
@@ -1309,8 +1348,8 @@ clustering speed.</p>
                                replace = TRUE)</code></pre>
 <p><br></p>
 </div>
-<div id="clustering-1" class="section level3">
-<h3>Clustering</h3>
+<div id="clustering-1" class="section level2">
+<h2>Clustering</h2>
 <p>We can now apply dimensional reduction which will allow us to cluster
 cells. The <strong>feat_type</strong> argument in the
 <strong>getPCA</strong> function will accept multiple modality names of
@@ -1362,7 +1401,6 @@ which point to the germinal centers of the human tonsil.</p>
 <pre class="r watch-out"><code>vrSpatialPlot(xen_tonsil, group.by = &quot;Clusters&quot;, group.ids = 14, 
               plot.segments = TRUE)</code></pre>
 <p><img width="80%" height="80%" src="https://bimsbstatic.mdc-berlin.de/landthaler/VoltRon/Package/images/multiomic_XeniumIF_spatial_gc.png" class="center"></p>
-</div>
 </div>
 </div>
 
@@ -1424,7 +1462,7 @@ $(document).ready(function ()  {
       ignoreSelector: ".toc-ignore",
       scrollTo: 0
     };
-    options.showAndHide = true;
+    options.showAndHide = false;
     options.smoothScroll = false;
 
     // tocify

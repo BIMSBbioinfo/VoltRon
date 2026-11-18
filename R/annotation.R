@@ -75,7 +75,8 @@ annotateSpatialData <- function(
       message("Please install ImageArray package to speed up visualization")
       img <- magick::image_read(img)
     } else {
-      img <- ImageArray::createImageArray(img)
+      # img <- ImageArray::createImageArray(img)
+      img <- ImageArray::ImageArray(img, n.levels = 4)
     }
   }
   if (!use.image.only) {
