@@ -82,7 +82,7 @@ Suggests:
     SpatialExperiment,
     SingleCellExperiment,
     SummarizedExperiment,
-    Seurat,
+    Seurat (>= 5.0.0),
     SeuratObject,
     Giotto,
     DESeq2,
