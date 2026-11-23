@@ -220,7 +220,6 @@ void computeSIFTTiles(Mat &im, std::vector<KeyPoint> &keypoints, Mat &descriptor
                       SIFTParameters params){
   // profiler
   // MemProfiler mp("SIFT Tiles");
-  Rcout <<  "Number of threads: " << cv::getNumThreads() << endl;
   
   // image size
   int width = im.size().width;
@@ -606,6 +605,9 @@ void alignImages(Mat &im1,
   // /// Compute SIFT+FLANN+Homograpy ///
   // ////////////////////////////////////
 
+  // Multiprocess
+  Rcout <<  "Number of threads: " << cv::getNumThreads() << endl;
+  
   // RUN SIFT+FLANN+Homography with retry
   bool is_faulty = FALSE;
   cv::Mat mask;

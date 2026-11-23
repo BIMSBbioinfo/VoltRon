@@ -158,14 +158,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // applyRcppMapping
-Rcpp::NumericMatrix applyRcppMapping(Rcpp::NumericMatrix coords, Rcpp::List mapping);
-RcppExport SEXP _VoltRon_applyRcppMapping(SEXP coordsSEXP, SEXP mappingSEXP) {
+Rcpp::NumericMatrix applyRcppMapping(Rcpp::NumericMatrix coords, Rcpp::List mapping, const int nthreads);
+RcppExport SEXP _VoltRon_applyRcppMapping(SEXP coordsSEXP, SEXP mappingSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type coords(coordsSEXP);
     Rcpp::traits::input_parameter< Rcpp::List >::type mapping(mappingSEXP);
-    rcpp_result_gen = Rcpp::wrap(applyRcppMapping(coords, mapping));
+    Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(applyRcppMapping(coords, mapping, nthreads));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -225,7 +226,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_VoltRon_warpImageManual", (DL_FUNC) &_VoltRon_warpImageManual, 7},
     {"_VoltRon_manual_registeration_rawvector", (DL_FUNC) &_VoltRon_manual_registeration_rawvector, 13},
     {"_VoltRon_manual_registeration_matrix", (DL_FUNC) &_VoltRon_manual_registeration_matrix, 5},
-    {"_VoltRon_applyRcppMapping", (DL_FUNC) &_VoltRon_applyRcppMapping, 2},
+    {"_VoltRon_applyRcppMapping", (DL_FUNC) &_VoltRon_applyRcppMapping, 3},
     {"_VoltRon_generateOverlapMask", (DL_FUNC) &_VoltRon_generateOverlapMask, 3},
     {"_VoltRon_build_snn_rank", (DL_FUNC) &_VoltRon_build_snn_rank, 1},
     {"_VoltRon_build_snn_number", (DL_FUNC) &_VoltRon_build_snn_number, 1},

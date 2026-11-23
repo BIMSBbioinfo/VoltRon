@@ -2559,23 +2559,28 @@ manageMapping <- function(mappings) {
 }
 
 applyMapping <- function(coords, mapping){
+  
+  # threads
+  nthreads <- getOption("VoltRon.nthreads", 1)
+  
+  # mapping
   mapping_new <- mapping
   if(!is.null(mapping[[1]][[2]])){
     if(is(mapping[[1]][[2]][[1]], "_p_itk__simple__TransformixImageFilter")){
       mapping_new[[1]] <- list(mapping[[1]][[1]], NULL)
-      coords <- applyRcppMapping(coords, mapping_new)
-      coords <- applySimpleITKMapping(coords, mapping[[1]][[2]][[1]])
+      coords <- applyRcppMapping(coords, mapping_new, nthreads)
+      coords <- applySimpleITKMapping(coords, mapping[[1]][[2]][[1]], nthreads)
     } else {
-      coords <- applyRcppMapping(coords, mapping)
+      coords <- applyRcppMapping(coords, mapping, nthreads)
     }
   } else {
-    coords <- applyRcppMapping(coords, mapping)
+    coords <- applyRcppMapping(coords, mapping, nthreads)
   }
   coords
 }
 
 #' @importFrom utils write.table
-applySimpleITKMapping <- function(coords, mapping){
+applySimpleITKMapping <- function(coords, mapping, nthreads){
   
   # check SimpleITK
   if (!requireNamespace('SimpleITK')) {
@@ -2588,6 +2593,9 @@ applySimpleITKMapping <- function(coords, mapping){
   tmpdir <- tempdir()
   tmpdir <- file.path(tmpdir, "SimpleITK")
   dir.create(tmpdir, showWarnings = FALSE)
+  
+  # threads
+  SimpleITK:::ProcessObject_SetGlobalDefaultNumberOfThreads(as.integer(nthreads))  
   
   # get image
   input_file <- file.path(tmpdir, "inputpoints.txt")
@@ -3764,7 +3772,7 @@ getRcppAutomatedRegistration <- function(
   ref_image <- magick::image_data(ref_image, channels = "rgb")
   query_image <- magick::image_data(query_image, channels = "rgb")
 
-  nthreads <- getOption("VoltRon.nthreads")
+  nthreads <- getOption("VoltRon.nthreads", 1)
   start <- proc.time()
   reg <- automated_registeration_rawvector(
     ref_image = ref_image,
@@ -3982,12 +3990,12 @@ getSimpleITKAutomatedRegistration <- function(
   dir.create(tmpdir, showWarnings = FALSE)
   
   # multithread
-  nthreads <- getOption("VoltRon.nthreads")
+  nthreads <- getOption("VoltRon.nthreads", 1)
   start <- proc.time()
   SimpleITK:::ProcessObject_SetGlobalDefaultNumberOfThreads(as.integer(nthreads))  
-  print(paste0(
+  cat(paste0(
     "Number of threads: ",
-    SimpleITK:::ProcessObject_GetGlobalDefaultNumberOfThreads()
+    SimpleITK:::ProcessObject_GetGlobalDefaultNumberOfThreads(), "\n"
   ))
   
   # prepare images and masks

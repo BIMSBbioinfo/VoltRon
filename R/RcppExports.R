@@ -33,8 +33,8 @@ manual_registeration_matrix <- function(query_data, reference_landmark, query_la
     .Call('_VoltRon_manual_registeration_matrix', PACKAGE = 'VoltRon', query_data, reference_landmark, query_landmark, method, nonrigid)
 }
 
-applyRcppMapping <- function(coords, mapping) {
-    .Call('_VoltRon_applyRcppMapping', PACKAGE = 'VoltRon', coords, mapping)
+applyRcppMapping <- function(coords, mapping, nthreads = 1L) {
+    .Call('_VoltRon_applyRcppMapping', PACKAGE = 'VoltRon', coords, mapping, nthreads)
 }
 
 generateOverlapMask <- function(dsize, trans_mat, ssize) {
