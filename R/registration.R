@@ -3773,7 +3773,6 @@ getRcppAutomatedRegistration <- function(
   query_image <- magick::image_data(query_image, channels = "rgb")
 
   nthreads <- getOption("VoltRon.nthreads", 1)
-  start <- proc.time()
   reg <- automated_registeration_rawvector(
     ref_image = ref_image,
     query_image = query_image,
@@ -3795,7 +3794,6 @@ getRcppAutomatedRegistration <- function(
     compute_accuracy = compute_accuracy,
     nthreads = nthreads
   )
-  print(proc.time() - start)
 
   # check for null keypoints
   if (suppressWarnings(all(lapply(reg[[1]][[2]], is.null)))) {
@@ -3991,7 +3989,6 @@ getSimpleITKAutomatedRegistration <- function(
   
   # multithread
   nthreads <- getOption("VoltRon.nthreads", 1)
-  start <- proc.time()
   SimpleITK:::ProcessObject_SetGlobalDefaultNumberOfThreads(as.integer(nthreads))  
   cat(paste0(
     "Number of threads: ",
@@ -4053,9 +4050,6 @@ getSimpleITKAutomatedRegistration <- function(
   tfx_points$LogToConsoleOff()
   tfx_points$SetTransformParameterMap(transform_param_map)
   tfx_points$SetMovingImage(SimpleITK::Image(moving$GetSize(), 'sitkFloat32'))
-  
-  # stop timer
-  print(proc.time() - start)
   
   # aligned image
   aligned_image <- .sitk_to_magick(sitk_img)
