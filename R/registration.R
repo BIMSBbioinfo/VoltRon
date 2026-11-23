@@ -3069,7 +3069,8 @@ computeManualPairwiseTransform <- function(
   keypoints_list,
   query_ind,
   ref_ind,
-  input
+  input,
+  compute_accuracy = TRUE
 ) {
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -3127,7 +3128,7 @@ computeManualPairwiseTransform <- function(
         "Yes",
       method = input$Method,
       nonrigid = nonrigid,
-      compute_accuracy = !grepl("SimpleITK", nonrigid)
+      compute_accuracy = !grepl("SimpleITK", nonrigid) & compute_accuracy
     )
     
     # run SimpleITK as fine registration
@@ -3160,7 +3161,8 @@ computeManualPairwiseTransform <- function(
         flipflop_ref = FALSE,
         rotate_query = FALSE,
         rotate_ref = FALSE,
-        initial_mapping = list(reg[[1]])
+        initial_mapping = list(reg[[1]]),
+        compute_accuracy = compute_accuracy
       )
       reg[[1]][[2]] <- tfx$transformation
       reg$aligned_image <- tfx$aligned_image
@@ -3533,7 +3535,8 @@ computeAutomatedPairwiseTransform <- function(
   channel_names,
   query_ind,
   ref_ind,
-  input
+  input,
+  compute_accuracy = TRUE
 ) {
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -3629,7 +3632,7 @@ computeAutomatedPairwiseTransform <- function(
       matcher = input$Matcher,
       method = input$Method,
       nonrigid = nonrigid,
-      compute_accuracy = !grepl("SimpleITK", nonrigid)
+      compute_accuracy = !grepl("SimpleITK", nonrigid) & compute_accuracy
     )
     
     # update transformation matrix
@@ -3695,7 +3698,8 @@ computeAutomatedPairwiseTransform <- function(
         )]],
         rotate_ref = input[[paste0(
           "rotate_", ref_label, "_image", cur_map[2])]],
-        initial_mapping = list(reg[[1]])
+        initial_mapping = list(reg[[1]]), 
+        compute_accuracy = compute_accuracy
       )
       reg[[1]][[2]] <- tfx$transformation
       reg$aligned_image <- tfx$aligned_image
@@ -3907,6 +3911,7 @@ getRcppAutomatedRegistration <- function(
 #' @param flipflop_ref flip or flop the reference image
 #' @param rotate_query rotation of query image
 #' @param rotate_ref rotation of reference image
+#' @param compute_accuracy Should accuracy metrics be computed ? 
 #' 
 #' @importFrom magick as_EBImage image_read
 #' @importFrom EBImage imageData writeImage
@@ -3921,7 +3926,8 @@ getSimpleITKAutomatedRegistration <- function(
     flipflop_ref = "None",
     rotate_query = "0",
     rotate_ref = "0",
-    initial_mapping = NULL
+    initial_mapping = NULL, 
+    compute_accuracy = TRUE
 ){
   # check SimpleITK
   if (!requireNamespace('SimpleITK')) {
@@ -3968,17 +3974,22 @@ getSimpleITKAutomatedRegistration <- function(
                            mapping = initial_mapping)
   
   # compute pre accuracy
-  results_pre <- getAlignmentAccuracy(
-    magick::image_convert(ref_image, 
-                          colorspace = "gray"), 
-    magick::image_convert(query_image, 
-                          colorspace = "gray"), 
-    mask_img,
-    "Coarse")
-  results_pre[[1]] <- .collapse_xy(results_pre[[1]])
-  
-  # check SSIM maps
-  coarse_ssim_map <- if (!is.null(results_pre[[2]])) .check_ssim_map(results_pre[[2]]) else NA 
+  if(compute_accuracy){
+    results_pre <- getAlignmentAccuracy(
+      magick::image_convert(ref_image, 
+                            colorspace = "gray"), 
+      magick::image_convert(query_image, 
+                            colorspace = "gray"), 
+      mask_img,
+      "Coarse")
+    results_pre[[1]] <- .collapse_xy(results_pre[[1]])
+    
+    # check SSIM maps
+    coarse_ssim_map <- if (!is.null(results_pre[[2]])) .check_ssim_map(results_pre[[2]]) else NA  
+  } else {
+    results_pre <- list(NULL, NULL, NULL)
+    coarse_ssim_map <- NA
+  }
   
   # message 
   message("MESSAGE: Running B-Spline Alignment")
@@ -4058,17 +4069,22 @@ getSimpleITKAutomatedRegistration <- function(
   unlink(tmpdir, recursive = TRUE)
   
   # calculate alignment accuracy
-  results <- getAlignmentAccuracy(
-    magick::image_convert(ref_image, 
-                          colorspace = "gray"), 
-    magick::image_convert(aligned_image, 
-                          colorspace = "gray"), 
-    aligned_mask,
-    "Fine")
-  results[[1]] <- .collapse_xy(results[[1]])
-  
-  # check SSIM maps
-  fine_ssim_map <- if (!is.null(results[[2]])) .check_ssim_map(results[[2]]) else NA
+  if(compute_accuracy){
+    results <- getAlignmentAccuracy(
+      magick::image_convert(ref_image, 
+                            colorspace = "gray"), 
+      magick::image_convert(aligned_image, 
+                            colorspace = "gray"), 
+      aligned_mask,
+      "Fine")
+    results[[1]] <- .collapse_xy(results[[1]])
+    
+    # check SSIM maps
+    fine_ssim_map <- if (!is.null(results[[2]])) .check_ssim_map(results[[2]]) else NA
+  } else {
+    results <- list(NULL, NULL, NULL)
+    fine_ssim_map <- NA
+  }
   
   # convert images
   overlay_image <-
