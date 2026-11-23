@@ -5,8 +5,8 @@ accuracy_rawvector <- function(ref_image, query_image, mask, width, height, type
     .Call('_VoltRon_accuracy_rawvector', PACKAGE = 'VoltRon', ref_image, query_image, mask, width, height, type, overlay_images)
 }
 
-automated_registeration_rawvector <- function(ref_image, query_image, width1, height1, width2, height2, GOOD_MATCH_PERCENT, MAX_FEATURES, invert_query, invert_ref, flipflop_query, flipflop_ref, rotate_query, rotate_ref, matcher, method, nonrigid, compute_accuracy = TRUE) {
-    .Call('_VoltRon_automated_registeration_rawvector', PACKAGE = 'VoltRon', ref_image, query_image, width1, height1, width2, height2, GOOD_MATCH_PERCENT, MAX_FEATURES, invert_query, invert_ref, flipflop_query, flipflop_ref, rotate_query, rotate_ref, matcher, method, nonrigid, compute_accuracy)
+automated_registeration_rawvector <- function(ref_image, query_image, width1, height1, width2, height2, GOOD_MATCH_PERCENT, MAX_FEATURES, invert_query, invert_ref, flipflop_query, flipflop_ref, rotate_query, rotate_ref, matcher, method, nonrigid, compute_accuracy = TRUE, nthreads = 1L) {
+    .Call('_VoltRon_automated_registeration_rawvector', PACKAGE = 'VoltRon', ref_image, query_image, width1, height1, width2, height2, GOOD_MATCH_PERCENT, MAX_FEATURES, invert_query, invert_ref, flipflop_query, flipflop_ref, rotate_query, rotate_ref, matcher, method, nonrigid, compute_accuracy, nthreads)
 }
 
 replaceNaMatrix <- function(mat, replace) {

@@ -30,6 +30,7 @@ struct SIFTParameters
   const int ransac_pixel_threshold = 5;
   const float ransac_confidence = 0.95;
   const int ransac_maxIters=2000;
+  const int nthreads=4;
 };
 
 ////
@@ -213,6 +214,7 @@ void computeSIFTTiles(Mat &im, std::vector<KeyPoint> &keypoints, Mat &descriptor
                       SIFTParameters params){
   // profiler
   // MemProfiler mp("SIFT Tiles");
+  Rcout <<  "Number of threads: " << cv::getNumThreads() << endl;
   
   // image size
   int width = im.size().width;
@@ -761,8 +763,12 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image,
                                              Rcpp::String matcher, 
                                              Rcpp::String method, 
                                              Rcpp::String nonrigid,
-                                             const bool compute_accuracy = true)
+                                             const bool compute_accuracy = true,
+                                             const int nthreads = 1)
 {
+  // threads
+  cv::setNumThreads(nthreads);
+  
   // Return data
   Rcpp::List out(9);
   Rcpp::List out_trans(2);
