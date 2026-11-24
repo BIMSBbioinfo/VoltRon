@@ -36,7 +36,6 @@ struct SIFTParameters
   const int ransac_pixel_threshold = 5;
   const float ransac_confidence = 0.95;
   const int ransac_maxIters=2000;
-  const int nthreads=4;
 };
 
 ////
@@ -772,7 +771,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image,
                                              Rcpp::String method, 
                                              Rcpp::String nonrigid,
                                              const bool compute_accuracy = true,
-                                             const int nthreads = 1)
+                                             const int nthreads = -1)
 {
   // threads
   cv::setNumThreads(nthreads);
