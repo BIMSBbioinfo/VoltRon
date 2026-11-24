@@ -693,7 +693,7 @@ void alignImages(Mat &im1,
     
     // remove close looking matches
     removeCloseMatches(points1, points2);
-
+    
     // transform query
     std::vector<cv::Point2f> points1_reg;
     if (h.rows == 2){
@@ -706,7 +706,7 @@ void alignImages(Mat &im1,
     std::vector<cv::DMatch> matches;
     for (unsigned int i = 0; i < points2.size(); i++)
       matches.push_back(cv::DMatch(i, i, 0));
-    
+
     // calculate TPS transformation
     Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
     tps->estimateTransformation(points2, points1_reg, matches);
@@ -715,16 +715,22 @@ void alignImages(Mat &im1,
     keypoints[0] = point2fToNumericMatrix(points2);
     keypoints[1] = point2fToNumericMatrix(points1_reg); 
     
+    Rcout << "5" << endl;
+    
     // warp overlap mask
     alignmentMask = warpTPSImage(im2Proc, alignmentMask, tps,
                                  im2Proc.rows, im2Proc.cols,
                                  cv::INTER_NEAREST);
 
+    Rcout << "6" << endl;
+    
     // transform image using trained tps
     im1Proc = warpTPSImage(im2Proc, im1Proc, tps,
                            im2Proc.rows, im2Proc.cols, cv::INTER_LINEAR);
     im1NormalProc = warpTPSImage(im2Proc, im1NormalProc, tps,
                                  im2Proc.rows, im2Proc.cols, cv::INTER_LINEAR);
+    
+    Rcout << "7" << endl;
     
     // get metrics and ssim maps, process 
     if(compute_accuracy){
@@ -774,7 +780,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image,
                                              const int nthreads = -1)
 {
   // threads
-  cv::setNumThreads(nthreads);
+  cv::setNumThreads(1);
   
   // Return data
   Rcpp::List out(9);
