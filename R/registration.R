@@ -2560,8 +2560,14 @@ manageMapping <- function(mappings) {
 
 applyMapping <- function(coords, mapping){
   
-  # threads
-  nthreads <- getOption("VoltRon.nthreads", 1)
+  # multi threading
+  nthreads <- getOption("VoltRon.nthreads", -1)
+  if(nthreads == -1) {
+    message("MESSAGE: Default number of threads are employed")
+  } else {
+    stop('Invalid number of threads, set option `VoltRon.nthreads` to ', 
+         'larger or equal than 1, e.g. options(`VoltRon.nthreads` = 4).')
+  }
   
   # mapping
   mapping_new <- mapping
@@ -2594,8 +2600,16 @@ applySimpleITKMapping <- function(coords, mapping, nthreads){
   tmpdir <- file.path(tmpdir, "SimpleITK")
   dir.create(tmpdir, showWarnings = FALSE)
   
-  # threads
-  SimpleITK:::ProcessObject_SetGlobalDefaultNumberOfThreads(as.integer(nthreads))  
+  # multi threading
+  if(nthreads >= 1){
+    SimpleITK:::ProcessObject_SetGlobalDefaultNumberOfThreads(
+      as.integer(nthreads)
+    )  
+    cat(paste0(
+      "Number of threads: ",
+      SimpleITK:::ProcessObject_GetGlobalDefaultNumberOfThreads(), "\n"
+    )) 
+  } 
   
   # get image
   input_file <- file.path(tmpdir, "inputpoints.txt")
@@ -3590,6 +3604,15 @@ computeAutomatedPairwiseTransform <- function(
     # check non-rigid
     nonrigid <- if(is.null(input$nonrigid)) "None" else input$nonrigid
 
+    # multi threading
+    nthreads <- getOption("VoltRon.nthreads", -1)
+    if(nthreads == -1) {
+      message("MESSAGE: Default number of threads are employed")
+    } else {
+      stop('Invalid number of threads, set option `VoltRon.nthreads` to ', 
+           'larger or equal than 1, e.g. options(`VoltRon.nthreads` = 4).')
+    }
+    
     # register images with OpenCV
     reg <- getRcppAutomatedRegistration(
       ref_image = ref_image_scaled,
@@ -3632,7 +3655,8 @@ computeAutomatedPairwiseTransform <- function(
       matcher = input$Matcher,
       method = input$Method,
       nonrigid = nonrigid,
-      compute_accuracy = !grepl("SimpleITK", nonrigid) & compute_accuracy
+      compute_accuracy = !grepl("SimpleITK", nonrigid) & compute_accuracy, 
+      nthreads = nthreads
     )
     
     # update transformation matrix
@@ -3771,12 +3795,12 @@ getRcppAutomatedRegistration <- function(
   matcher = "FLANN",
   method = "Homography",
   nonrigid = "TPS (OpenCV)",
-  compute_accuracy = TRUE
+  compute_accuracy = TRUE,
+  nthreads = -1
 ) {
   ref_image <- magick::image_data(ref_image, channels = "rgb")
   query_image <- magick::image_data(query_image, channels = "rgb")
 
-  nthreads <- getOption("VoltRon.nthreads", 1)
   reg <- automated_registeration_rawvector(
     ref_image = ref_image,
     query_image = query_image,
@@ -3927,7 +3951,8 @@ getSimpleITKAutomatedRegistration <- function(
     rotate_query = "0",
     rotate_ref = "0",
     initial_mapping = NULL, 
-    compute_accuracy = TRUE
+    compute_accuracy = TRUE,
+    nthreads = NULL
 ){
   # check SimpleITK
   if (!requireNamespace('SimpleITK')) {
@@ -3991,20 +4016,23 @@ getSimpleITKAutomatedRegistration <- function(
     coarse_ssim_map <- NA
   }
   
+  # multi threading
+  if(nthreads >= 1){
+    SimpleITK:::ProcessObject_SetGlobalDefaultNumberOfThreads(
+      as.integer(nthreads)
+    )  
+    cat(paste0(
+      "Number of threads: ",
+      SimpleITK:::ProcessObject_GetGlobalDefaultNumberOfThreads(), "\n"
+    )) 
+  } 
+  
   # message 
   message("MESSAGE: Running B-Spline Alignment")
   # temp dir, delete later
   tmpdir <- tempdir()
   tmpdir <- file.path(tmpdir, "SimpleITK")
   dir.create(tmpdir, showWarnings = FALSE)
-  
-  # multithread
-  nthreads <- getOption("VoltRon.nthreads", 1)
-  SimpleITK:::ProcessObject_SetGlobalDefaultNumberOfThreads(as.integer(nthreads))  
-  cat(paste0(
-    "Number of threads: ",
-    SimpleITK:::ProcessObject_GetGlobalDefaultNumberOfThreads(), "\n"
-  ))
   
   # prepare images and masks
   fixed <- convertToSitkImage(ref_image)
