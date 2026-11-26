@@ -425,7 +425,7 @@ std::map<std::string, double> getAlignmentMetrics(Mat &im1, Mat &im2,
   metrics["SSIM"] = t.ssim;
   
   // Report
-  Rcout << "  Mattes MI:    " << metrics["Matte's MI"] << std::endl;
+  Rcout << "  Mattes MI:    " << metrics["Mattes MI"] << std::endl;
   Rcout << "  SSIM:          " << metrics["SSIM"] << std::endl;
 
   return metrics;

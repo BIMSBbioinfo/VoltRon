@@ -2699,7 +2699,7 @@ applyMapping <- function(coords, mapping){
   nthreads <- getOption("VoltRon.nthreads", -1)
   if(nthreads == -1) {
     message("MESSAGE: Default number of threads are employed")
-  } else {
+  } else if(nthreads < 1) {
     stop('Invalid number of threads, set option `VoltRon.nthreads` to ', 
          'larger or equal than 1, e.g. options(`VoltRon.nthreads` = 4).')
   }

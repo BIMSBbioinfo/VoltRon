@@ -774,7 +774,7 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image,
                                              const int nthreads = -1)
 {
   // threads
-  cv::setNumThreads(1);
+  cv::setNumThreads(nthreads);
   
   // Return data
   Rcpp::List out(9);
