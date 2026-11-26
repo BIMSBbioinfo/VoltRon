@@ -4,12 +4,14 @@
 \alias{generateSegments}
 \title{generateSegments}
 \usage{
-generateSegments(object, type = c("ROI", "cell"))
+generateSegments(object, type = c("ROI", "cell"), nm = NULL)
 }
 \arguments{
 \item{object}{an object of sf class with each element having a geometry}
 
 \item{type}{spatial entity type: ROI or cell}
+
+\item{nm}{the names of the segments, if not provided, \code{type} will be used.}
 }
 \description{
 The function to import segments from a geojson file

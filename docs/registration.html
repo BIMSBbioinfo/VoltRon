@@ -631,6 +631,9 @@ taken as the image of reference</strong>. Hence, in order to align the
 first Xenium Replicate to the Visium dataset, we can create a list of
 two VoltRon objects as given below.</p>
 <pre class="r watch-out"><code>xen_reg &lt;- registerSpatialData(object_list = list(Vis, Xen_R2))</code></pre>
+<p>To change or accelerate the computation of transformation, you can
+set the number of threads explicitly using, .e.g for 4 cores:</p>
+<pre class="r watch-out"><code>options(`VoltRon.nthreads` = 4)</code></pre>
 <p><br></p>
 </div>
 <div id="manual-image-alignment" class="section level3">

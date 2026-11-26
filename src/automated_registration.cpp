@@ -715,22 +715,16 @@ void alignImages(Mat &im1,
     keypoints[0] = point2fToNumericMatrix(points2);
     keypoints[1] = point2fToNumericMatrix(points1_reg); 
     
-    Rcout << "5" << endl;
-    
     // warp overlap mask
     alignmentMask = warpTPSImage(im2Proc, alignmentMask, tps,
                                  im2Proc.rows, im2Proc.cols,
                                  cv::INTER_NEAREST);
 
-    Rcout << "6" << endl;
-    
     // transform image using trained tps
     im1Proc = warpTPSImage(im2Proc, im1Proc, tps,
                            im2Proc.rows, im2Proc.cols, cv::INTER_LINEAR);
     im1NormalProc = warpTPSImage(im2Proc, im1NormalProc, tps,
                                  im2Proc.rows, im2Proc.cols, cv::INTER_LINEAR);
-    
-    Rcout << "7" << endl;
     
     // get metrics and ssim maps, process 
     if(compute_accuracy){

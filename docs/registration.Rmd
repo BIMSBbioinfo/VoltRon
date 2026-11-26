@@ -166,6 +166,12 @@ In case there are only two images, **the first image will be taken as the image 
 xen_reg <- registerSpatialData(object_list = list(Vis, Xen_R2))
 ```
 
+To change or accelerate the computation of transformation, you can set the number of threads explicitly using, .e.g for 4 cores:
+
+```{r class.source="watch-out", eval = FALSE} 
+options(`VoltRon.nthreads` = 4)
+```
+
 <br>
 
 ### Manual Image Alignment

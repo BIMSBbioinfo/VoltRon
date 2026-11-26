@@ -34,26 +34,19 @@ if [ "$PKGCONFIG_CFLAGS" ] || [ "$PKGCONFIG_LIBS" ]; then
     PKG_CFLAGS="$PKG_CFLAGS -D_DATA_PREFIX=${PKGCONFIG_PREFIX}"
   fi
 elif [ `uname` = "Darwin" ]; then
-
-  test ! "$CI" && brew --version 2>/dev/null
-  if [ $? -eq 0 ]; then
-    BREWDIR=`brew --prefix`
-    PKG_CFLAGS="-I$BREWDIR/opt/opencv/include"
-    PKG_LIBS="-L$BREWDIR/opt/opencv/lib $PKG_LIBS"
-  else
   
-    # this new chunk avoids crashes when paths have artifacts spaces
-    case "$PWD" in
-      *" "*)
-        SAFEDIR=`mktemp -d /tmp/voltron.XXXXXX`
-        ln -s "$PWD" "$SAFEDIR/pkg"
-        cd "$SAFEDIR/pkg"
-        ;;
-    esac
-  
-    curl -sfL "https://autobrew.github.io/scripts/opencv" > autobrew
+  # this new chunk avoids crashes when paths have artifacts spaces
+  case "$PWD" in
+    *" "*)
+      SAFEDIR=`mktemp -d /tmp/voltron.XXXXXX`
+      ln -s "$PWD" "$SAFEDIR/pkg"
+      cd "$SAFEDIR/pkg"
+      ;;
+  esac
+    
+  curl -sfL "https://autobrew.github.io/scripts/opencv" > autobrew
     . ./autobrew
-  fi
+  uniq cleanup > cleanup_tmp && mv cleanup_tmp cleanup
 fi
 
 # For debugging

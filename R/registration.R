@@ -544,13 +544,13 @@ getSideBar <- function(params = NULL) {
                  "overlapping tiles from aligned images."
                )
       )),
-      p(span("Matte's MI:",
+      p(span("Mattes MI:",
              icon("info-circle"),
              `data-toggle`    = "tooltip",
              `data-placement` = "right",
              title = 
                paste0(
-                 "Matte's Mutual Information score calculated from aligned images."
+                 "Mattes Mutual Information score calculated from aligned images."
                )
       )),
       
@@ -2021,7 +2021,7 @@ transferParameterInput <- function(params, image_list) {
 
 .ALIGNMENT_ACCURACY_METRICS <- c(
   "SSIM",
-  "Matte's MI"
+  "Mattes MI"
 )
 
 .ALIGNMENT_KEYPOINT_METRICS <- c(
@@ -2744,7 +2744,7 @@ applySimpleITKMapping <- function(coords, mapping, nthreads){
       "Number of threads: ",
       SimpleITK:::ProcessObject_GetGlobalDefaultNumberOfThreads(), "\n"
     )) 
-  } 
+  }
   
   # get image
   input_file <- file.path(tmpdir, "inputpoints.txt")
@@ -3255,6 +3255,15 @@ computeManualPairwiseTransform <- function(
     # check non-rigid
     nonrigid <- if(is.null(input$nonrigid)) "None" else input$nonrigid
 
+    # multi threading
+    nthreads <- getOption("VoltRon.nthreads", -1)
+    if(nthreads == -1) {
+      message("MESSAGE: Default number of threads are employed")
+    } else if(nthreads < 1) {
+      stop('Invalid number of threads, set option `VoltRon.nthreads` to ', 
+           'larger or equal than 1, e.g. options(`VoltRon.nthreads` = 4).')
+    }
+    
     # get registered image (including all channels)
     reg <- getRcppManualRegistration(
       query_image,
@@ -3351,6 +3360,7 @@ computeManualPairwiseTransform <- function(
 #' @param method the automated registration method, either TPS or Homography+TPS
 #' @param nonrigid the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"
 #' @param compute_accuracy Should accuracy metrics be computed ? 
+#' @param nthreads The number of threads
 #' 
 #' @importFrom magick image_read image_data
 #'
@@ -3364,7 +3374,8 @@ getRcppManualRegistration <- function(
   invert_ref = FALSE,
   method = "Homography",
   nonrigid = "TPS (OpenCV)", 
-  compute_accuracy = TRUE
+  compute_accuracy = TRUE,
+  nthreads = -1
 ) {
   
   # ref image
@@ -3676,7 +3687,8 @@ getAutomatedRegisteration <- function(
 #' @param query_ind the index of the query image
 #' @param ref_ind the index of the reference image
 #' @param input input
-#' @param compute_accuracy Should accuracy metrics be computed ? 
+#' @param compute_accuracy Should accuracy metrics be computed ?
+#' @param nthreads The number of threads
 #'
 #' @noRd
 computeAutomatedPairwiseTransform <- function(
@@ -3685,7 +3697,8 @@ computeAutomatedPairwiseTransform <- function(
   query_ind,
   ref_ind,
   input,
-  compute_accuracy = TRUE
+  compute_accuracy = TRUE,
+  nthreads = -1
 ) {
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -3743,7 +3756,7 @@ computeAutomatedPairwiseTransform <- function(
     nthreads <- getOption("VoltRon.nthreads", -1)
     if(nthreads == -1) {
       message("MESSAGE: Default number of threads are employed")
-    } else {
+    } else if(nthreads < 1) {
       stop('Invalid number of threads, set option `VoltRon.nthreads` to ', 
            'larger or equal than 1, e.g. options(`VoltRon.nthreads` = 4).')
     }
@@ -3912,6 +3925,7 @@ computeAutomatedPairwiseTransform <- function(
 #' @param method the automated registration method, Homography or Homography+TPS
 #' @param nonrigid the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"
 #' @param compute_accuracy Should accuracy metrics be computed ? 
+#' @param nthreads The number of threads
 #' 
 #' @importFrom magick image_read image_data
 #'
@@ -4087,7 +4101,7 @@ getSimpleITKAutomatedRegistration <- function(
     rotate_ref = "0",
     initial_mapping = NULL, 
     compute_accuracy = TRUE,
-    nthreads = NULL
+    nthreads = -1
 ){
   # check SimpleITK
   if (!requireNamespace('SimpleITK')) {
@@ -4160,7 +4174,7 @@ getSimpleITKAutomatedRegistration <- function(
       "Number of threads: ",
       SimpleITK:::ProcessObject_GetGlobalDefaultNumberOfThreads(), "\n"
     )) 
-  } 
+  }
   
   # message 
   message("MESSAGE: Running B-Spline Alignment")

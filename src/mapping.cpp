@@ -14,7 +14,7 @@ using namespace cv;
 // [[Rcpp::export]]
 Rcpp::NumericMatrix applyRcppMapping(Rcpp::NumericMatrix coords, 
                                      Rcpp::List mapping, 
-                                     const int nthreads = 1)
+                                     const int nthreads = -1)
 {
   // threads
   cv::setNumThreads(nthreads);
