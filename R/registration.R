@@ -553,28 +553,6 @@ getSideBar <- function(params = NULL) {
                  "Matte's Mutual Information score calculated from aligned images."
                )
       )),
-      p(span("Intersection:",
-             icon("info-circle"),
-             `data-toggle`    = "tooltip",
-             `data-placement` = "right",
-             title = 
-               paste0(
-                 "The global intersection similarity measure ", 
-                 "calculated by the arithmetic mean of intersection scores ", 
-                 "of each overlapping tiles from aligned images."
-               )
-      )),
-      p(span("Bhattacharyya:",
-             icon("info-circle"),
-             `data-toggle`    = "tooltip",
-             `data-placement` = "right",
-             title = 
-               paste0(
-                 "The global Bhattacharyya similarity measure ", 
-                 "calculated by the arithmetic mean of Bhattacharyya scores ",
-                 "of each overlapping tiles from aligned images."
-               )
-      )),
       
       h4("Keypoint Metrics:"),
       p(span("# of Matches:",
