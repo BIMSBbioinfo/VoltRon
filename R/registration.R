@@ -3288,7 +3288,8 @@ computeManualPairwiseTransform <- function(
         "Yes",
       method = input$Method,
       nonrigid = nonrigid,
-      compute_accuracy = !grepl("SimpleITK", nonrigid) & compute_accuracy
+      compute_accuracy = !grepl("SimpleITK", nonrigid) & compute_accuracy,
+      nthreads = nthreads
     )
     
     # run SimpleITK as fine registration

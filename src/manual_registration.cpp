@@ -4,12 +4,6 @@
 #include <opencv2/opencv.hpp>
 #include "opencv2/shape/shape_transformer.hpp"
 
-#if CV_VERSION_MAJOR >= 5
-#include <opencv2/geometry.hpp>   // findHomography, estimateAffine2D, RANSAC
-#else
-#include <opencv2/calib3d.hpp>
-#endif
-
 // Library
 #include "auxiliary.h"
 #include "image.h"
