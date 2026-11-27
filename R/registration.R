@@ -3211,6 +3211,7 @@ getManualRegisteration <- function(
 #' @param ref_ind the index of the reference image
 #' @param input input
 #' @param compute_accuracy Should accuracy metrics be computed ? 
+#' @param nthreads The number of threads
 #'
 #' @noRd
 computeManualPairwiseTransform <- function(
@@ -3219,7 +3220,8 @@ computeManualPairwiseTransform <- function(
   query_ind,
   ref_ind,
   input,
-  compute_accuracy = TRUE
+  compute_accuracy = TRUE,
+  nthreads = -1
 ) {
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -3320,7 +3322,8 @@ computeManualPairwiseTransform <- function(
         rotate_query = FALSE,
         rotate_ref = FALSE,
         initial_mapping = list(reg[[1]]),
-        compute_accuracy = compute_accuracy
+        compute_accuracy = compute_accuracy, 
+        nthreads = nthreads
       )
       reg[[1]][[2]] <- tfx$transformation
       reg$aligned_image <- tfx$aligned_image
@@ -3415,7 +3418,8 @@ getRcppManualRegistration <- function(
         reference_landmark = reference_landmark,
         query_landmark = query_landmark,
         method = method,
-        nonrigid = nonrigid
+        nonrigid = nonrigid,
+        nthreads = nthreads
       )
     } else {
       manual_registeration_rawvector(
@@ -3431,7 +3435,8 @@ getRcppManualRegistration <- function(
         height2 = dim(query_image)[3],
         method = method,
         nonrigid = nonrigid, 
-        compute_accuracy = compute_accuracy
+        compute_accuracy = compute_accuracy,
+        nthreads = nthreads
       )
     }
 
@@ -3871,7 +3876,8 @@ computeAutomatedPairwiseTransform <- function(
         rotate_ref = input[[paste0(
           "rotate_", ref_label, "_image", cur_map[2])]],
         initial_mapping = list(reg[[1]]), 
-        compute_accuracy = compute_accuracy
+        compute_accuracy = compute_accuracy, 
+        nthreads = nthreads
       )
       reg[[1]][[2]] <- tfx$transformation
       reg$aligned_image <- tfx$aligned_image

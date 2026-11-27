@@ -304,8 +304,12 @@ Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image,
                                           const bool invert_ref,
                                           Rcpp::String method, 
                                           Rcpp::String nonrigid,
-                                          const bool compute_accuracy = true)
+                                          const bool compute_accuracy = true,
+                                          const int nthreads = -1)
 {
+  // threads
+  cv::setNumThreads(nthreads);
+  
   // Return data
   Rcpp::List out(6);
   Rcpp::List out_trans(2);
@@ -374,8 +378,12 @@ Rcpp::List manual_registeration_matrix(Rcpp::NumericMatrix query_data,
                                        Rcpp::NumericMatrix reference_landmark, 
                                        Rcpp::NumericMatrix query_landmark,
                                        Rcpp::String method, 
-                                       Rcpp::String nonrigid)
+                                       Rcpp::String nonrigid,
+                                       const int nthreads = -1)
 {
+  // threads
+  cv::setNumThreads(nthreads);
+  
   // Return data
   Rcpp::List out(2);
   Rcpp::List out_trans(2);

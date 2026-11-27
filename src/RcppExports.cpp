@@ -120,8 +120,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // manual_registeration_rawvector
-Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, Rcpp::NumericMatrix reference_landmark, Rcpp::NumericMatrix query_landmark, const int width1, const int height1, const int width2, const int height2, const bool invert_query, const bool invert_ref, Rcpp::String method, Rcpp::String nonrigid, const bool compute_accuracy);
-RcppExport SEXP _VoltRon_manual_registeration_rawvector(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP reference_landmarkSEXP, SEXP query_landmarkSEXP, SEXP width1SEXP, SEXP height1SEXP, SEXP width2SEXP, SEXP height2SEXP, SEXP invert_querySEXP, SEXP invert_refSEXP, SEXP methodSEXP, SEXP nonrigidSEXP, SEXP compute_accuracySEXP) {
+Rcpp::List manual_registeration_rawvector(Rcpp::RawVector ref_image, Rcpp::RawVector query_image, Rcpp::NumericMatrix reference_landmark, Rcpp::NumericMatrix query_landmark, const int width1, const int height1, const int width2, const int height2, const bool invert_query, const bool invert_ref, Rcpp::String method, Rcpp::String nonrigid, const bool compute_accuracy, const int nthreads);
+RcppExport SEXP _VoltRon_manual_registeration_rawvector(SEXP ref_imageSEXP, SEXP query_imageSEXP, SEXP reference_landmarkSEXP, SEXP query_landmarkSEXP, SEXP width1SEXP, SEXP height1SEXP, SEXP width2SEXP, SEXP height2SEXP, SEXP invert_querySEXP, SEXP invert_refSEXP, SEXP methodSEXP, SEXP nonrigidSEXP, SEXP compute_accuracySEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -138,13 +138,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::String >::type method(methodSEXP);
     Rcpp::traits::input_parameter< Rcpp::String >::type nonrigid(nonrigidSEXP);
     Rcpp::traits::input_parameter< const bool >::type compute_accuracy(compute_accuracySEXP);
-    rcpp_result_gen = Rcpp::wrap(manual_registeration_rawvector(ref_image, query_image, reference_landmark, query_landmark, width1, height1, width2, height2, invert_query, invert_ref, method, nonrigid, compute_accuracy));
+    Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(manual_registeration_rawvector(ref_image, query_image, reference_landmark, query_landmark, width1, height1, width2, height2, invert_query, invert_ref, method, nonrigid, compute_accuracy, nthreads));
     return rcpp_result_gen;
 END_RCPP
 }
 // manual_registeration_matrix
-Rcpp::List manual_registeration_matrix(Rcpp::NumericMatrix query_data, Rcpp::NumericMatrix reference_landmark, Rcpp::NumericMatrix query_landmark, Rcpp::String method, Rcpp::String nonrigid);
-RcppExport SEXP _VoltRon_manual_registeration_matrix(SEXP query_dataSEXP, SEXP reference_landmarkSEXP, SEXP query_landmarkSEXP, SEXP methodSEXP, SEXP nonrigidSEXP) {
+Rcpp::List manual_registeration_matrix(Rcpp::NumericMatrix query_data, Rcpp::NumericMatrix reference_landmark, Rcpp::NumericMatrix query_landmark, Rcpp::String method, Rcpp::String nonrigid, const int nthreads);
+RcppExport SEXP _VoltRon_manual_registeration_matrix(SEXP query_dataSEXP, SEXP reference_landmarkSEXP, SEXP query_landmarkSEXP, SEXP methodSEXP, SEXP nonrigidSEXP, SEXP nthreadsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -153,7 +154,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type query_landmark(query_landmarkSEXP);
     Rcpp::traits::input_parameter< Rcpp::String >::type method(methodSEXP);
     Rcpp::traits::input_parameter< Rcpp::String >::type nonrigid(nonrigidSEXP);
-    rcpp_result_gen = Rcpp::wrap(manual_registeration_matrix(query_data, reference_landmark, query_landmark, method, nonrigid));
+    Rcpp::traits::input_parameter< const int >::type nthreads(nthreadsSEXP);
+    rcpp_result_gen = Rcpp::wrap(manual_registeration_matrix(query_data, reference_landmark, query_landmark, method, nonrigid, nthreads));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -224,8 +226,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_VoltRon_warpRcppImage", (DL_FUNC) &_VoltRon_warpRcppImage, 7},
     {"_VoltRon_warpImageAuto", (DL_FUNC) &_VoltRon_warpImageAuto, 7},
     {"_VoltRon_warpImageManual", (DL_FUNC) &_VoltRon_warpImageManual, 7},
-    {"_VoltRon_manual_registeration_rawvector", (DL_FUNC) &_VoltRon_manual_registeration_rawvector, 13},
-    {"_VoltRon_manual_registeration_matrix", (DL_FUNC) &_VoltRon_manual_registeration_matrix, 5},
+    {"_VoltRon_manual_registeration_rawvector", (DL_FUNC) &_VoltRon_manual_registeration_rawvector, 14},
+    {"_VoltRon_manual_registeration_matrix", (DL_FUNC) &_VoltRon_manual_registeration_matrix, 6},
     {"_VoltRon_applyRcppMapping", (DL_FUNC) &_VoltRon_applyRcppMapping, 3},
     {"_VoltRon_generateOverlapMask", (DL_FUNC) &_VoltRon_generateOverlapMask, 3},
     {"_VoltRon_build_snn_rank", (DL_FUNC) &_VoltRon_build_snn_rank, 1},
