@@ -12,8 +12,13 @@ using namespace std;
 using namespace cv;
 
 // [[Rcpp::export]]
-Rcpp::NumericMatrix applyRcppMapping(Rcpp::NumericMatrix coords, Rcpp::List mapping)
+Rcpp::NumericMatrix applyRcppMapping(Rcpp::NumericMatrix coords, 
+                                     Rcpp::List mapping, 
+                                     const int nthreads = -1)
 {
+  // threads
+  cv::setNumThreads(nthreads);
+  
   // Get coordinates as Point2f
   std::vector<cv::Point2f> coords_mat = numericMatrixToPoint2f(coords);
   std::vector<cv::Point2f> coords_temp;

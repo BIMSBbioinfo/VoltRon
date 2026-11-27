@@ -18,7 +18,8 @@ getRcppAutomatedRegistration(
   matcher = "FLANN",
   method = "Homography",
   nonrigid = "TPS (OpenCV)",
-  compute_accuracy = TRUE
+  compute_accuracy = TRUE,
+  nthreads = -1
 )
 }
 \arguments{
@@ -49,6 +50,8 @@ getRcppAutomatedRegistration(
 \item{nonrigid}{the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"}
 
 \item{compute_accuracy}{Should accuracy metrics be computed ?}
+
+\item{nthreads}{The number of threads}
 }
 \description{
 Automated registration workflos with Rcpp

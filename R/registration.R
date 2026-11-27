@@ -544,13 +544,13 @@ getSideBar <- function(params = NULL) {
                  "overlapping tiles from aligned images."
                )
       )),
-      p(span("Matte's MI:",
+      p(span("Mattes MI:",
              icon("info-circle"),
              `data-toggle`    = "tooltip",
              `data-placement` = "right",
              title = 
                paste0(
-                 "Matte's Mutual Information score calculated from aligned images."
+                 "Mattes Mutual Information score calculated from aligned images."
                )
       )),
       
@@ -2021,7 +2021,7 @@ transferParameterInput <- function(params, image_list) {
 
 .ALIGNMENT_ACCURACY_METRICS <- c(
   "SSIM",
-  "Matte's MI"
+  "Mattes MI"
 )
 
 .ALIGNMENT_KEYPOINT_METRICS <- c(
@@ -2694,23 +2694,34 @@ manageMapping <- function(mappings) {
 }
 
 applyMapping <- function(coords, mapping){
+  
+  # multi threading
+  nthreads <- getOption("VoltRon.nthreads", -1)
+  if(nthreads == -1) {
+    message("MESSAGE: Default number of threads are employed")
+  } else if(nthreads < 1) {
+    stop('Invalid number of threads, set option `VoltRon.nthreads` to ', 
+         'larger or equal than 1, e.g. options(`VoltRon.nthreads` = 4).')
+  }
+  
+  # mapping
   mapping_new <- mapping
   if(!is.null(mapping[[1]][[2]])){
     if(is(mapping[[1]][[2]][[1]], "_p_itk__simple__TransformixImageFilter")){
       mapping_new[[1]] <- list(mapping[[1]][[1]], NULL)
-      coords <- applyRcppMapping(coords, mapping_new)
-      coords <- applySimpleITKMapping(coords, mapping[[1]][[2]][[1]])
+      coords <- applyRcppMapping(coords, mapping_new, nthreads)
+      coords <- applySimpleITKMapping(coords, mapping[[1]][[2]][[1]], nthreads)
     } else {
-      coords <- applyRcppMapping(coords, mapping)
+      coords <- applyRcppMapping(coords, mapping, nthreads)
     }
   } else {
-    coords <- applyRcppMapping(coords, mapping)
+    coords <- applyRcppMapping(coords, mapping, nthreads)
   }
   coords
 }
 
 #' @importFrom utils write.table
-applySimpleITKMapping <- function(coords, mapping){
+applySimpleITKMapping <- function(coords, mapping, nthreads){
   
   # check SimpleITK
   if (!requireNamespace('SimpleITK')) {
@@ -2723,6 +2734,17 @@ applySimpleITKMapping <- function(coords, mapping){
   tmpdir <- tempdir()
   tmpdir <- file.path(tmpdir, "SimpleITK")
   dir.create(tmpdir, showWarnings = FALSE)
+  
+  # multi threading
+  if(nthreads >= 1){
+    SimpleITK:::ProcessObject_SetGlobalDefaultNumberOfThreads(
+      as.integer(nthreads)
+    )  
+    cat(paste0(
+      "Number of threads: ",
+      SimpleITK:::ProcessObject_GetGlobalDefaultNumberOfThreads(), "\n"
+    )) 
+  }
   
   # get image
   input_file <- file.path(tmpdir, "inputpoints.txt")
@@ -3189,6 +3211,7 @@ getManualRegisteration <- function(
 #' @param ref_ind the index of the reference image
 #' @param input input
 #' @param compute_accuracy Should accuracy metrics be computed ? 
+#' @param nthreads The number of threads
 #'
 #' @noRd
 computeManualPairwiseTransform <- function(
@@ -3196,7 +3219,9 @@ computeManualPairwiseTransform <- function(
   keypoints_list,
   query_ind,
   ref_ind,
-  input
+  input,
+  compute_accuracy = TRUE,
+  nthreads = -1
 ) {
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -3232,6 +3257,15 @@ computeManualPairwiseTransform <- function(
     # check non-rigid
     nonrigid <- if(is.null(input$nonrigid)) "None" else input$nonrigid
 
+    # multi threading
+    nthreads <- getOption("VoltRon.nthreads", -1)
+    if(nthreads == -1) {
+      message("MESSAGE: Default number of threads are employed")
+    } else if(nthreads < 1) {
+      stop('Invalid number of threads, set option `VoltRon.nthreads` to ', 
+           'larger or equal than 1, e.g. options(`VoltRon.nthreads` = 4).')
+    }
+    
     # get registered image (including all channels)
     reg <- getRcppManualRegistration(
       query_image,
@@ -3254,7 +3288,8 @@ computeManualPairwiseTransform <- function(
         "Yes",
       method = input$Method,
       nonrigid = nonrigid,
-      compute_accuracy = !grepl("SimpleITK", nonrigid)
+      compute_accuracy = !grepl("SimpleITK", nonrigid) & compute_accuracy,
+      nthreads = nthreads
     )
     
     # run SimpleITK as fine registration
@@ -3287,7 +3322,9 @@ computeManualPairwiseTransform <- function(
         flipflop_ref = FALSE,
         rotate_query = FALSE,
         rotate_ref = FALSE,
-        initial_mapping = list(reg[[1]])
+        initial_mapping = list(reg[[1]]),
+        compute_accuracy = compute_accuracy, 
+        nthreads = nthreads
       )
       reg[[1]][[2]] <- tfx$transformation
       reg$aligned_image <- tfx$aligned_image
@@ -3327,6 +3364,7 @@ computeManualPairwiseTransform <- function(
 #' @param method the automated registration method, either TPS or Homography+TPS
 #' @param nonrigid the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"
 #' @param compute_accuracy Should accuracy metrics be computed ? 
+#' @param nthreads The number of threads
 #' 
 #' @importFrom magick image_read image_data
 #'
@@ -3340,7 +3378,8 @@ getRcppManualRegistration <- function(
   invert_ref = FALSE,
   method = "Homography",
   nonrigid = "TPS (OpenCV)", 
-  compute_accuracy = TRUE
+  compute_accuracy = TRUE,
+  nthreads = -1
 ) {
   
   # ref image
@@ -3380,7 +3419,8 @@ getRcppManualRegistration <- function(
         reference_landmark = reference_landmark,
         query_landmark = query_landmark,
         method = method,
-        nonrigid = nonrigid
+        nonrigid = nonrigid,
+        nthreads = nthreads
       )
     } else {
       manual_registeration_rawvector(
@@ -3396,7 +3436,8 @@ getRcppManualRegistration <- function(
         height2 = dim(query_image)[3],
         method = method,
         nonrigid = nonrigid, 
-        compute_accuracy = compute_accuracy
+        compute_accuracy = compute_accuracy,
+        nthreads = nthreads
       )
     }
 
@@ -3652,7 +3693,8 @@ getAutomatedRegisteration <- function(
 #' @param query_ind the index of the query image
 #' @param ref_ind the index of the reference image
 #' @param input input
-#' @param compute_accuracy Should accuracy metrics be computed ? 
+#' @param compute_accuracy Should accuracy metrics be computed ?
+#' @param nthreads The number of threads
 #'
 #' @noRd
 computeAutomatedPairwiseTransform <- function(
@@ -3660,7 +3702,9 @@ computeAutomatedPairwiseTransform <- function(
   channel_names,
   query_ind,
   ref_ind,
-  input
+  input,
+  compute_accuracy = TRUE,
+  nthreads = -1
 ) {
   # determine the number of transformation to map from query to the reference
   indices <- query_ind:ref_ind
@@ -3714,6 +3758,15 @@ computeAutomatedPairwiseTransform <- function(
     # check non-rigid
     nonrigid <- if(is.null(input$nonrigid)) "None" else input$nonrigid
 
+    # multi threading
+    nthreads <- getOption("VoltRon.nthreads", -1)
+    if(nthreads == -1) {
+      message("MESSAGE: Default number of threads are employed")
+    } else if(nthreads < 1) {
+      stop('Invalid number of threads, set option `VoltRon.nthreads` to ', 
+           'larger or equal than 1, e.g. options(`VoltRon.nthreads` = 4).')
+    }
+    
     # register images with OpenCV
     reg <- getRcppAutomatedRegistration(
       ref_image = ref_image_scaled,
@@ -3756,7 +3809,8 @@ computeAutomatedPairwiseTransform <- function(
       matcher = input$Matcher,
       method = input$Method,
       nonrigid = nonrigid,
-      compute_accuracy = !grepl("SimpleITK", nonrigid)
+      compute_accuracy = !grepl("SimpleITK", nonrigid) & compute_accuracy, 
+      nthreads = nthreads
     )
     
     # update transformation matrix
@@ -3822,7 +3876,9 @@ computeAutomatedPairwiseTransform <- function(
         )]],
         rotate_ref = input[[paste0(
           "rotate_", ref_label, "_image", cur_map[2])]],
-        initial_mapping = list(reg[[1]])
+        initial_mapping = list(reg[[1]]), 
+        compute_accuracy = compute_accuracy, 
+        nthreads = nthreads
       )
       reg[[1]][[2]] <- tfx$transformation
       reg$aligned_image <- tfx$aligned_image
@@ -3876,6 +3932,7 @@ computeAutomatedPairwiseTransform <- function(
 #' @param method the automated registration method, Homography or Homography+TPS
 #' @param nonrigid the non-rigid registration method, "TPS (OpenCV)" or "BSpline (SimpleITK)"
 #' @param compute_accuracy Should accuracy metrics be computed ? 
+#' @param nthreads The number of threads
 #' 
 #' @importFrom magick image_read image_data
 #'
@@ -3894,7 +3951,8 @@ getRcppAutomatedRegistration <- function(
   matcher = "FLANN",
   method = "Homography",
   nonrigid = "TPS (OpenCV)",
-  compute_accuracy = TRUE
+  compute_accuracy = TRUE,
+  nthreads = -1
 ) {
   ref_image <- magick::image_data(ref_image, channels = "rgb")
   query_image <- magick::image_data(query_image, channels = "rgb")
@@ -3917,7 +3975,8 @@ getRcppAutomatedRegistration <- function(
     matcher = matcher,
     method = method,
     nonrigid = nonrigid,
-    compute_accuracy = compute_accuracy
+    compute_accuracy = compute_accuracy,
+    nthreads = nthreads
   )
 
   # check for null keypoints
@@ -4032,6 +4091,7 @@ getRcppAutomatedRegistration <- function(
 #' @param flipflop_ref flip or flop the reference image
 #' @param rotate_query rotation of query image
 #' @param rotate_ref rotation of reference image
+#' @param compute_accuracy Should accuracy metrics be computed ? 
 #' 
 #' @importFrom magick as_EBImage image_read
 #' @importFrom EBImage imageData writeImage
@@ -4046,7 +4106,9 @@ getSimpleITKAutomatedRegistration <- function(
     flipflop_ref = "None",
     rotate_query = "0",
     rotate_ref = "0",
-    initial_mapping = NULL
+    initial_mapping = NULL, 
+    compute_accuracy = TRUE,
+    nthreads = -1
 ){
   # check SimpleITK
   if (!requireNamespace('SimpleITK')) {
@@ -4093,17 +4155,33 @@ getSimpleITKAutomatedRegistration <- function(
                            mapping = initial_mapping)
   
   # compute pre accuracy
-  results_pre <- getAlignmentAccuracy(
-    magick::image_convert(ref_image, 
-                          colorspace = "gray"), 
-    magick::image_convert(query_image, 
-                          colorspace = "gray"), 
-    mask_img,
-    "Coarse")
-  results_pre[[1]] <- .collapse_xy(results_pre[[1]])
+  if(compute_accuracy){
+    results_pre <- getAlignmentAccuracy(
+      magick::image_convert(ref_image, 
+                            colorspace = "gray"), 
+      magick::image_convert(query_image, 
+                            colorspace = "gray"), 
+      mask_img,
+      "Coarse")
+    results_pre[[1]] <- .collapse_xy(results_pre[[1]])
+    
+    # check SSIM maps
+    coarse_ssim_map <- if (!is.null(results_pre[[2]])) .check_ssim_map(results_pre[[2]]) else NA  
+  } else {
+    results_pre <- list(NULL, NULL, NULL)
+    coarse_ssim_map <- NA
+  }
   
-  # check SSIM maps
-  coarse_ssim_map <- if (!is.null(results_pre[[2]])) .check_ssim_map(results_pre[[2]]) else NA 
+  # multi threading
+  if(nthreads >= 1){
+    SimpleITK:::ProcessObject_SetGlobalDefaultNumberOfThreads(
+      as.integer(nthreads)
+    )  
+    cat(paste0(
+      "Number of threads: ",
+      SimpleITK:::ProcessObject_GetGlobalDefaultNumberOfThreads(), "\n"
+    )) 
+  }
   
   # message 
   message("MESSAGE: Running B-Spline Alignment")
@@ -4175,17 +4253,22 @@ getSimpleITKAutomatedRegistration <- function(
   unlink(tmpdir, recursive = TRUE)
   
   # calculate alignment accuracy
-  results <- getAlignmentAccuracy(
-    magick::image_convert(ref_image, 
-                          colorspace = "gray"), 
-    magick::image_convert(aligned_image, 
-                          colorspace = "gray"), 
-    aligned_mask,
-    "Fine")
-  results[[1]] <- .collapse_xy(results[[1]])
-  
-  # check SSIM maps
-  fine_ssim_map <- if (!is.null(results[[2]])) .check_ssim_map(results[[2]]) else NA
+  if(compute_accuracy){
+    results <- getAlignmentAccuracy(
+      magick::image_convert(ref_image, 
+                            colorspace = "gray"), 
+      magick::image_convert(aligned_image, 
+                            colorspace = "gray"), 
+      aligned_mask,
+      "Fine")
+    results[[1]] <- .collapse_xy(results[[1]])
+    
+    # check SSIM maps
+    fine_ssim_map <- if (!is.null(results[[2]])) .check_ssim_map(results[[2]]) else NA
+  } else {
+    results <- list(NULL, NULL, NULL)
+    fine_ssim_map <- NA
+  }
   
   # convert images
   overlay_image <-

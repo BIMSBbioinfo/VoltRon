@@ -598,6 +598,9 @@ void alignImages(Mat &im1,
   // /// Compute SIFT+FLANN+Homograpy ///
   // ////////////////////////////////////
 
+  // Multiprocess
+  Rcout <<  "Number of threads: " << cv::getNumThreads() << endl;
+  
   // RUN SIFT+FLANN+Homography with retry
   bool is_faulty = FALSE;
   cv::Mat mask;
@@ -684,7 +687,7 @@ void alignImages(Mat &im1,
     
     // remove close looking matches
     removeCloseMatches(points1, points2);
-
+    
     // transform query
     std::vector<cv::Point2f> points1_reg;
     if (h.rows == 2){
@@ -697,7 +700,7 @@ void alignImages(Mat &im1,
     std::vector<cv::DMatch> matches;
     for (unsigned int i = 0; i < points2.size(); i++)
       matches.push_back(cv::DMatch(i, i, 0));
-    
+
     // calculate TPS transformation
     Ptr<ThinPlateSplineShapeTransformer> tps = cv::createThinPlateSplineShapeTransformer(0);
     tps->estimateTransformation(points2, points1_reg, matches);
@@ -761,8 +764,12 @@ Rcpp::List automated_registeration_rawvector(Rcpp::RawVector& ref_image,
                                              Rcpp::String matcher, 
                                              Rcpp::String method, 
                                              Rcpp::String nonrigid,
-                                             const bool compute_accuracy = true)
+                                             const bool compute_accuracy = true,
+                                             const int nthreads = -1)
 {
+  // threads
+  cv::setNumThreads(nthreads);
+  
   // Return data
   Rcpp::List out(9);
   Rcpp::List out_trans(2);

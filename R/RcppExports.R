@@ -5,8 +5,8 @@ accuracy_rawvector <- function(ref_image, query_image, mask, width, height, type
     .Call('_VoltRon_accuracy_rawvector', PACKAGE = 'VoltRon', ref_image, query_image, mask, width, height, type, overlay_images)
 }
 
-automated_registeration_rawvector <- function(ref_image, query_image, width1, height1, width2, height2, GOOD_MATCH_PERCENT, MAX_FEATURES, invert_query, invert_ref, flipflop_query, flipflop_ref, rotate_query, rotate_ref, matcher, method, nonrigid, compute_accuracy = TRUE) {
-    .Call('_VoltRon_automated_registeration_rawvector', PACKAGE = 'VoltRon', ref_image, query_image, width1, height1, width2, height2, GOOD_MATCH_PERCENT, MAX_FEATURES, invert_query, invert_ref, flipflop_query, flipflop_ref, rotate_query, rotate_ref, matcher, method, nonrigid, compute_accuracy)
+automated_registeration_rawvector <- function(ref_image, query_image, width1, height1, width2, height2, GOOD_MATCH_PERCENT, MAX_FEATURES, invert_query, invert_ref, flipflop_query, flipflop_ref, rotate_query, rotate_ref, matcher, method, nonrigid, compute_accuracy = TRUE, nthreads = -1L) {
+    .Call('_VoltRon_automated_registeration_rawvector', PACKAGE = 'VoltRon', ref_image, query_image, width1, height1, width2, height2, GOOD_MATCH_PERCENT, MAX_FEATURES, invert_query, invert_ref, flipflop_query, flipflop_ref, rotate_query, rotate_ref, matcher, method, nonrigid, compute_accuracy, nthreads)
 }
 
 replaceNaMatrix <- function(mat, replace) {
@@ -25,16 +25,16 @@ warpImageManual <- function(ref_image, query_image, mapping, width1, height1, wi
     .Call('_VoltRon_warpImageManual', PACKAGE = 'VoltRon', ref_image, query_image, mapping, width1, height1, width2, height2)
 }
 
-manual_registeration_rawvector <- function(ref_image, query_image, reference_landmark, query_landmark, width1, height1, width2, height2, invert_query, invert_ref, method, nonrigid, compute_accuracy = TRUE) {
-    .Call('_VoltRon_manual_registeration_rawvector', PACKAGE = 'VoltRon', ref_image, query_image, reference_landmark, query_landmark, width1, height1, width2, height2, invert_query, invert_ref, method, nonrigid, compute_accuracy)
+manual_registeration_rawvector <- function(ref_image, query_image, reference_landmark, query_landmark, width1, height1, width2, height2, invert_query, invert_ref, method, nonrigid, compute_accuracy = TRUE, nthreads = -1L) {
+    .Call('_VoltRon_manual_registeration_rawvector', PACKAGE = 'VoltRon', ref_image, query_image, reference_landmark, query_landmark, width1, height1, width2, height2, invert_query, invert_ref, method, nonrigid, compute_accuracy, nthreads)
 }
 
-manual_registeration_matrix <- function(query_data, reference_landmark, query_landmark, method, nonrigid) {
-    .Call('_VoltRon_manual_registeration_matrix', PACKAGE = 'VoltRon', query_data, reference_landmark, query_landmark, method, nonrigid)
+manual_registeration_matrix <- function(query_data, reference_landmark, query_landmark, method, nonrigid, nthreads = -1L) {
+    .Call('_VoltRon_manual_registeration_matrix', PACKAGE = 'VoltRon', query_data, reference_landmark, query_landmark, method, nonrigid, nthreads)
 }
 
-applyRcppMapping <- function(coords, mapping) {
-    .Call('_VoltRon_applyRcppMapping', PACKAGE = 'VoltRon', coords, mapping)
+applyRcppMapping <- function(coords, mapping, nthreads = -1L) {
+    .Call('_VoltRon_applyRcppMapping', PACKAGE = 'VoltRon', coords, mapping, nthreads)
 }
 
 generateOverlapMask <- function(dsize, trans_mat, ssize) {

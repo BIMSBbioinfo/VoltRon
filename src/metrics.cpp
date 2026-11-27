@@ -421,11 +421,11 @@ std::map<std::string, double> getAlignmentMetrics(Mat &im1, Mat &im2,
   
   // Summary
   Rcout << "Alignment Accuracy (" << type << "): " << endl;
-  metrics["Matte's MI"] = MatteMI(im2, im1, mask, 50);
+  metrics["Mattes MI"] = MatteMI(im2, im1, mask, 50);
   metrics["SSIM"] = t.ssim;
   
   // Report
-  Rcout << "  Matte's MI:    " << metrics["Matte's MI"] << std::endl;
+  Rcout << "  Mattes MI:    " << metrics["Mattes MI"] << std::endl;
   Rcout << "  SSIM:          " << metrics["SSIM"] << std::endl;
 
   return metrics;

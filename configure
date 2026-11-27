@@ -34,14 +34,20 @@ if [ "$PKGCONFIG_CFLAGS" ] || [ "$PKGCONFIG_LIBS" ]; then
     PKG_CFLAGS="$PKG_CFLAGS -D_DATA_PREFIX=${PKGCONFIG_PREFIX}"
   fi
 elif [ `uname` = "Darwin" ]; then
+  
+  # this new chunk avoids crashes when paths have artifacts spaces
+  case "$PWD" in
+    *" "*)
+      SAFEDIR=`mktemp -d /tmp/voltron.XXXXXX`
+      ln -s "$PWD" "$SAFEDIR/pkg"
+      cd "$SAFEDIR/pkg"
+      ;;
+  esac
+    
   curl -sfL "https://autobrew.github.io/scripts/opencv" > autobrew
     . ./autobrew
   uniq cleanup > cleanup_tmp && mv cleanup_tmp cleanup
 fi
-
-## adding additional features for Morpho derived C++ functions ### DELETE THIS LATER, Morpho no longer required!
-# PKG_LIBS=$(echo $PKG_LIBS $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS))
-# PKG_LIBS="$LAPACK_LIBS $BLAS_LIBS $FLIBS $PKG_LIBS"
 
 # For debugging
 echo "Using PKG_CFLAGS=$PKG_CFLAGS"
